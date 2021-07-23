@@ -21,8 +21,8 @@ router.post("/", (req, res) => {
     if (text == '') {
         // This is the first request. Note how we start the response with CON
         response = `END What would you like to check
-        1. My account
-        2. My phone number`;
+        1. Create Account
+        2. Check Balance`;
     } 
     else if ( text == '1') {
         // Business logic for first level response
