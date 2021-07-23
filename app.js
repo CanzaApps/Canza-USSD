@@ -1,6 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const ussdRouter = require("./index");
+const ussdRouter = require("./services/ussd");
 const dotenv = require("dotenv").config();
 
 const app = express();
