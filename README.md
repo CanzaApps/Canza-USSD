@@ -1,6 +1,6 @@
 # Canza-USSD
 
 ## Install Dependencies
-`yarn`
+```yarn```
 ## Start App
-`yarn start`
+```yarn start```
