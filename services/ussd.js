@@ -9,15 +9,6 @@ const alfatores = process.env.ALFAJORES;
 const kit = ContractKit.newKit(alfatores);
 console.log(kit);
 
-
-// Get authentication
-// const credentials = {
-//     apiKey: process.env.APIKEY, // use your sandbox app API key for development in the test environment
-//     username: process.env.USER_NAME // use 'sandbox' for development in the test environment
-//   };
-//   console.log(credentials);
-//   const AfricasTalking = require("africastalking")(credentials);
-
 router.post("/", (req, res) => {
     const { sessionId, serviceCode, phoneNumber, text} = req.body;
 
@@ -27,7 +18,8 @@ router.post("/", (req, res) => {
 
     if (text == '') {
         // This is the first request. Note how we start the response with CON
-        response = `END What would you like to check
+        response = `Welcome to Canza Ecosystem!
+        What would you like to do?
         1. Create Account
         2. Check Balance`;
     } 
