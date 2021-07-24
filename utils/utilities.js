@@ -85,7 +85,7 @@ function sendMessage(to, message) {
     const params = {
         to: [to],
         message: message,
-        from: 'KotaniPay'
+        from: 'Canza'
     }  
     // console.log('Sending sms to user')
     sms.send(params)

@@ -160,7 +160,7 @@ const receiveMpesaStkDeposit = async (mobileNumber, referenceCode,  amount) => {
         },
         "transaction": {
             "amount": "100",
-            "description": "Kotani Pay STKPUSH",
+            "description": "Canza",
             "businessNumber": "915170",
             "reference": referenceCode
         }
@@ -210,7 +210,7 @@ const receiveFromEazzypayPush = async (mobileNumber, referenceCode,  amount) => 
         },
         "transaction": {
             "amount": amount,
-            "description": "Kotani Pay EazzyPay PUSH",
+            "description": "Canza Pay EazzyPay PUSH",
             "type": "EazzyPayOnline",
             "reference": referenceCode
         }
@@ -238,7 +238,7 @@ const sendFromJengaToMobileMoney = async (amount, referenceCode, currencyCode, c
     data: {
       "source": {
           "countryCode": countryCode,
-          "name": "Kotani Pay Limited",
+          "name": "Canza Pay Limited",
           "accountNumber": account_id
       },
       "destination": {
@@ -254,7 +254,7 @@ const sendFromJengaToMobileMoney = async (amount, referenceCode, currencyCode, c
           "currencyCode": currencyCode,
           "reference": referenceCode,
           "date": date,
-          "description": "Cash From Kotani Pay via Jenga"
+          "description": "Cash From Canza Pay via Jenga"
       }
     }
   });
