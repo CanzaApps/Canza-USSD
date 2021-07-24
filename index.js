@@ -110,7 +110,7 @@ const requireAuth = (req, res, next) => {
 const PNF = require('google-libphonenumber').PhoneNumberFormat;
  const phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 const axios = require("axios");
-const jenga = require('./jengakit');
+const jenga = require('./services/jengakit');
 const telosApi = require('./telosApi');
 const bezomoneyapi = require('./bezomoneyApi');
 const savingsacco = require('./savingsaccoApi');
@@ -121,7 +121,7 @@ const restapi = require('./kotaniAdminApi');
 
 var randomstring = require("randomstring");
 // var tinyURL = require('tinyurl');
-var { getTxidUrl, getDeepLinkUrl, getAddressUrl, getPinFromUser, getEncryptKey, createcypher, decryptcypher, sendMessage, sendGmail, emailIsValid, isDobValid, isValidKePhoneNumber } = require('./utilities');
+var { getTxidUrl, getDeepLinkUrl, getAddressUrl, getPinFromUser, getEncryptKey, createcypher, decryptcypher, sendMessage, sendGmail, emailIsValid, isDobValid, isValidKePhoneNumber } = require('./utils/utilities');
 
 //GLOBAL ENV VARIABLES
 const iv = functions.config().env.crypto_iv.key;
@@ -131,7 +131,7 @@ const escrowMSISDN = functions.config().env.escrow.msisdn;
 
 //@task imports from celokit
 
-const {  getPublicAddress, generatePrivKey, weiToDecimal, decimaltoWei, sendcUSD, buyCelo, sellCelo, getContractKit,  getLatestBlock, validateWithdrawHash } = require('./celokit');
+const {  getPublicAddress, generatePrivKey, weiToDecimal, decimaltoWei, sendcUSD, buyCelo, sellCelo, getContractKit,  getLatestBlock, validateWithdrawHash } = require('./utils/celokit');
 const { getIcxUsdtPrice } = require('./iconnect');
 const { resolve } = require('path');
 

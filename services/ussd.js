@@ -18,7 +18,7 @@ router.post("/", (req, res) => {
 
     if (text == '') {
         // This is the first request. Note how we start the response with CON
-        response = `Welcome to Canza Ecosystem!
+        response = `END Welcome to Canza Ecosystem!
         What would you like to do?
         1. Create Account
         2. Check Balance`;
