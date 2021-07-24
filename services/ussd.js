@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const dotenv = require("dotenv").config();
 const ContractKit = require("@celo/contractkit");
+const { createWallet, getBalance} = require("../utils/generate-celo-address");
 
 const alfatores = process.env.ALFAJORES;
 
