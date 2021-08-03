@@ -13,7 +13,7 @@ async function mongoDB() {
       useCreateIndex: true
     });
 
-    console.log(" db connected !!! ")
+    console.log(" Database Connected ")
   } catch (e) {
     console.error(e);
   } finally {
