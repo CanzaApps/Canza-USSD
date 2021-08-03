@@ -1,10 +1,8 @@
 require("dotenv").config();
-const alfatores = process.env.ALFAJORES;
+const rpc = process.env.MAINNET_HTTP;
 const  ContractKit = require("@celo/contractkit");
 
-
-
-const kit = ContractKit.newKit(alfatores);
+const kit = ContractKit.newKit(rpc);
 
 const createWallet = async() => {
     console.log("reaches here")
