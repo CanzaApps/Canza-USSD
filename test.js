@@ -34,6 +34,8 @@ const sell = async () => {
   }
 };
 sell();
+
+
 const buyCelo = async (myAddress) => {
   try {
     const stableToken = await kit.contracts.getStableToken();
