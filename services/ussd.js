@@ -18,7 +18,7 @@ const { UserInfo } = require("../model/schema");
 
 router.post("/", async (req, res) => {
   console.log(req.body, "req is");
-  const { sessionId, serviceCode, phoneNumber, text } = req.body;
+  const { sessionId, serviceCode, phoneNumber, text, } = req.body;
 
   let response = "CON ";
 
@@ -29,7 +29,9 @@ router.post("/", async (req, res) => {
         What would you like to do?
         1. Create Account
         2. Check Balance
-        3. See Wallet Address`;
+        3. See Wallet Address
+        4. Input Number
+        `;
   } else if (text == "1") {
       const user = await userAddressFromDB(phoneNumber);
       if(user.length <= 0 ){
@@ -60,8 +62,26 @@ router.post("/", async (req, res) => {
     const user = await userAddressFromDB(phoneNumber);
 
     response = `END This is Your Canza Address \n ${user[0].phoneNumber}`;
-  }
+  } else if (text == "4") {
+    response = `CON Input the Number \n`;
+  } else if ((/4*/).test(text)) {
+    const number = text.split("*")[1];
+    const user = await userAddressFromDB(number);
+      if(user.length <= 0 ){
+      const data = await createWallet();
 
+      console.log(data, "Wallet Created");
+      response = `END Wallet Address has been created
+      `;
+      addUserInfo({ 
+        address: data.address,
+        number,
+        privateKey: data.privateKey
+        });
+      }else{
+        response ="END Canza Address Already Exist"
+      } 
+  }
   res.send(response);
 });
 

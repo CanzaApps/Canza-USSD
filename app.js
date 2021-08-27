@@ -12,3 +12,4 @@ app.use(express.urlencoded({ extended: false}));
 app.use('/', ussdRouter);
 
 app.listen(PORT, () => console.log(`listening to ${PORT}`));
+
