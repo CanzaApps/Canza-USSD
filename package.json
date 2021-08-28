@@ -6,7 +6,7 @@
   "author": "Sam Ayorinde <41350405+Sam-Devs@users.noreply.github.com>",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "app.js"
   },
   "dependencies": {
     "@celo/contractkit": "^1.0.2",
