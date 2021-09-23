@@ -33,7 +33,6 @@ router.post("/", async (req, res) => {
         2. Check Balance
         3. See Wallet Address
         4. Send Money
-        5. Input Number
         `;
   } else if (text == "1") {
     const user = await userAddressFromDB(phoneNumber);
