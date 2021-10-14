@@ -27,8 +27,8 @@ router.post("/", async (req, res) => {
   if (text == "") {
     // This is the first request. Note how we start the response with CON
 
-    response += `Welcome to Canza Ecosystem!
-        What would you like to do?
+    response += `Canza Ecosystem!
+        Select Option?
         1. Create Account
         2. Check Balance
         3. See Wallet Address
