@@ -39,7 +39,7 @@ router.post("/", async (req, res) => {
     // console.log("user infomation:", user[0].address)
     if (user.length <= 0) {
       const data = await createWallet();
-      
+
       console.log("Wallet Created", data);
 
       response = `END Wallet Address has been created`;
@@ -57,13 +57,13 @@ router.post("/", async (req, res) => {
     response = await getAccountBalance(phoneNumber)
     // response = `END Your Canza Address Balance \n ${mybalance}`;
   } else if (text === "3") {
-    // checkAddress if account exits 
+    // checkAddress if account exits
     // const user = await userAddressFromDB(phoneNumber);
     // let userMSISDN = phoneNumber.substring(1);
-    
+
     response = await getAccountDetails(phoneNumber);
 
-  // send money and transfer funds 
+  // send money and transfer funds
   } else if (data[0] == '4' && data[1] == null) {
     response = `CON Enter Recipient`;
   } else if (data[0] == '4' && data[1] !== '' && data[2] == null){
@@ -71,11 +71,11 @@ router.post("/", async (req, res) => {
   } else if (data[0] == '4' && data[1] !== '' && data[2] !== '' ){
     senderMSISDN = phoneNumber
     console.log('Sender:', senderMSISDN.substring(1))
-    receiverMSISDN = '+254' + data[1].substring(1)
+    receiverMSISDN = '+234' + data[1].substring(1)
     console.log('Recipient: ', receiverMSISDN)
     amount = data[2];
     console.log('Amount: ', amount)
-    response = `END NGN` +amount+ ` sent to ` +receiverMSISDN+ ` Celo Account`;
+    response = `END cUSD ` +amount+ ` sent to ` +receiverMSISDN+ ` Celo Account`;
 
     // senderId = await getSenderId(senderMSISDN)
     // console.log('senderId:', senderId)
@@ -117,13 +117,13 @@ router.post("/", async (req, res) => {
 
 async function getAccountDetails(userMSISDN) {
   console.log("phone number",userMSISDN);
-  
+
   const user = await userAddressFromDB(userMSISDN);
   let accountAddress = user[0].address
 
   console.log('account yangu', accountAddress)
   let url = await getUserAddressUrl(accountAddress);
-  
+
   console.log("Address Url Link:", url);
   return `END Your Account Number is: ${userMSISDN}
   ...Account Address is: ${url}`;
@@ -144,12 +144,12 @@ async function getAccountBalance(userMSISDN) {
 
   const goldTokenWrapper = await kit.contracts.getGoldToken()
   let cGoldBalance = await goldTokenWrapper.balanceOf(accountaddress) // In cGLD
-  cGoldBalance = kit.web3.utils.fromWei(cGoldBalance.toString(), 'ether')   
+  cGoldBalance = kit.web3.utils.fromWei(cGoldBalance.toString(), 'ether')
   console.info(`Account balance of ${cGoldBalance.toString()}`)
 
   return `END Your Account Balance is:
-          Celo Dollar: ${cUSDBalance} cUSD
-          Celo Gold: ${cGoldBalance} cGLD`
+          Celo cUSD: ${cUSDBalance} cUSD
+          Celo: ${cGoldBalance} cGLD`
 }
 
 // details
@@ -168,7 +168,7 @@ async function getTxidUrl(txid){
 function getSentTxidUrl(txid){
   return new Promise(resolve => {
     const sourceURL = `https://alfajores-blockscout.celo-testnet.org/tx/${txid}/token_transfers`;
-    resolve (tinyURL.shorten(sourceURL))  
+    resolve (tinyURL.shorten(sourceURL))
   })
 }
 
@@ -210,7 +210,7 @@ async function transfercUSD(senderId, recipientId, amount) {
     let receiverInfo =  userDoc[0].address
     console.log('Receiver Adress: ', receiverInfo)
 
-    let cUSDAmount = amount*0.01;
+    let cUSDAmount = amount*1;
     console.log('cUSD Amount: ', cUSDAmount);
 
     return sendcUSD(`${senderInfo}`, `${receiverInfo}`, cUSDAmount, senderKey)
