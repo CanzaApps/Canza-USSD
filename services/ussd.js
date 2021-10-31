@@ -8,6 +8,9 @@ const { UserInfo, userAddressFromDB, addUserInfo } = require("../model/schema");
 const crypto = require("crypto");
 const tinyURL = require("tinyurl");
 const CoinGecko = require('coingecko-api');
+const CoinGeckoClient = new CoinGecko(); // initiate the CoinGecko API Client
+
+
 
 // const { credential } = require("firebase-admin");
 
@@ -35,6 +38,7 @@ router.post("/", async (req, res) => {
         2. Check Balance
         3. See Wallet Address
         4. Send Money
+        6. Current Market Price
         `;
   } else if (text == "1") {
     const user = await userAddressFromDB(phoneNumber);
@@ -114,7 +118,44 @@ router.post("/", async (req, res) => {
     } else {
       response = "END Canza Address Already Exist";
     }
-  }
+  } // 6. Coingecko Market Data
+  else if (data[0] == '6' && data[1] == null ) {
+    response = `CON select any to view current market data
+                1. Bitcoin Current Price
+                2. Etherum Currrent Price
+                3. Celo Currrent Price
+                `;
+      }
+    else if ( data[0] == '6' && data[1] == '1') {
+      const btc_ngn_usd = await CoinGeckoClient.simple.price({ ids: ['bitcoin', 'bitcoin'], vs_currencies: ['ngn', 'usd'] })
+
+      console.log("==>", btc_ngn_usd.data.bitcoin.ngn)
+      
+      // bitcion market price in both Naira and USD
+      let btc_price_ngn = formartNumber(btc_ngn_usd.data.bitcoin.ngn, 2)
+      let btc_price_usd = formartNumber(btc_ngn_usd.data.bitcoin.usd, 2)
+      
+      response = `END 1 BTC exchange rate is: ` +btc_price_ngn+ ` Naira and ` +btc_price_usd+ ` USD`;
+    }
+    else if ( data[0] == '6' && data[1] == '2') {
+      const eth_ngn_usd = await CoinGeckoClient.simple.price({ ids: ['ethereum', 'ethereum'], vs_currencies: ['ngn', 'usd'] }) 
+      console.log('eth==>', eth_ngn_usd)
+      
+      // ethereum market price in both Naira and USD
+      let eth_price_ngn = formartNumber(eth_ngn_usd.data.ethereum.ngn, 2)
+      let eth_price_usd = formartNumber(eth_ngn_usd.data.ethereum.usd, 2)
+      
+      response = `END 1 ETH exchange rate is: ` +eth_price_ngn+ ` Naira and ` +eth_price_usd+ ` USD`;
+    }
+    else if ( data[0] == '6' && data[1] == '3') {
+      const celo_ngn_usd = await CoinGeckoClient.simple.price({ ids: ['celo', 'celo'], vs_currencies: ['ngn', 'usd'] })
+      
+      // celo market price in both Naira and USD
+      let celo_price_ngn = formartNumber(celo_ngn_usd.data.celo.ngn, 2)
+      let celo_price_usd = formartNumber(celo_ngn_usd.data.celo.usd, 2)
+      
+      response = `END 1 CELO exchange rate is: ` +celo_price_ngn+ ` Naira and ` +celo_price_usd+ ` USD`;
+    }
   res.send(response);
 });
 
