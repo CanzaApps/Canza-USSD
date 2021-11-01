@@ -7,8 +7,6 @@ const { createWallet, getBalance, totalBalances } = require("../utils/generate-c
 const { UserInfo, userAddressFromDB, addUserInfo } = require("../model/schema");
 const crypto = require("crypto");
 const tinyURL = require("tinyurl");
-const CoinGecko = require('coingecko-api');
-
 // const { credential } = require("firebase-admin");
 
 const alfatores = process.env.ALFAJORES;
@@ -18,13 +16,13 @@ const kit = ContractKit.newKit(alfatores);
 
 // Mongo DB
 const uri = process.env.URI;
+
 router.post("/", async (req, res) => {
   // console.log("my req body is", req.body);
   const { sessionId, serviceCode, phoneNumber, text } = req.body;
 
   let response = "CON ";
   var data = text.split('*');
-  var exRate = ""
 
   if (text == "") {
     // This is the first request. Note how we start the response with CON
@@ -56,7 +54,7 @@ router.post("/", async (req, res) => {
     // get Balance
     // const phoneBalance = await userAddressFromDB(phoneNumber);
     // const balance = await getBalance(phoneBalance[0].address);
-    response = await getAccountBalance(phoneNumber);
+    response = await getAccountBalance(phoneNumber)
     // response = `END Your Canza Address Balance \n ${mybalance}`;
   } else if (text === "3") {
     // checkAddress if account exits
@@ -64,7 +62,6 @@ router.post("/", async (req, res) => {
     // let userMSISDN = phoneNumber.substring(1);
 
     response = await getAccountDetails(phoneNumber);
-
 
   // send money and transfer funds
   } else if (data[0] == '4' && data[1] == null) {
@@ -134,12 +131,6 @@ async function getAccountDetails(userMSISDN) {
 
 //  account balance
 async function getAccountBalance(userMSISDN) {
-    const CoinGeckoClient = new CoinGecko();
-    let exRate = await CoinGeckoClient.simple.price({ids: ['celo'],
-                         vs_currencies: ['ngn'], });
-    var priceRate = exRate.data.celo.ngn;
-    console.log("exchange rate price:  ", priceRate);
-
   console.log("phone balance..", userMSISDN);
 
   const user = await userAddressFromDB(userMSISDN);
@@ -149,7 +140,6 @@ async function getAccountBalance(userMSISDN) {
   const stableTokenWrapper = await kit.contracts.getStableToken()
   let cUSDBalance = await stableTokenWrapper.balanceOf(accountaddress) // In cUSD
   cUSDBalance = kit.web3.utils.fromWei(cUSDBalance.toString(), 'ether')
-  let ngnPrice = cUSDBalance * priceRate;
   console.info(`Account balance of ${cUSDBalance.toString()}`)
 
   const goldTokenWrapper = await kit.contracts.getGoldToken()
@@ -159,8 +149,7 @@ async function getAccountBalance(userMSISDN) {
 
   return `END Your Account Balance is:
           Celo cUSD: ${cUSDBalance} cUSD
-          Celo cUSD 'in Naira' cNGN: N${ngnPrice} cNaira
-          `
+          Celo: ${cGoldBalance} cGLD`
 }
 
 // details
