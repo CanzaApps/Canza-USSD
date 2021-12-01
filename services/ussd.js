@@ -32,13 +32,13 @@ router.post("/", async (req, res) => {
   if (text == "") {
     // This is the first request. Note how we start the response with CON
 
-    response += `Canza Ecosystem!
-        Select Option?
-        1. Create Account
-        2. Check Balance
-        3. See Wallet Address
-        4. Send Money
-        6. Current Market Price
+    response += `Canza Ecosystem
+            Select?
+            1. Create Account
+            2. Balance
+            3. See Wallet Address
+            4. Send Money
+            5. Prices
         `;
   } else if (text == "1") {
     const user = await userAddressFromDB(phoneNumber);
@@ -101,10 +101,10 @@ router.post("/", async (req, res) => {
 
   } // 6. Coingecko Market Data
   else if (data[0] == '5' && data[1] == null ) {
-    response = `CON select any to view current market data
-                1. Bitcoin Current Price
-                2. Etherum Currrent Price
-                3. Celo Currrent Price
+    response = `CON select any to view current market prices
+                    1. Bitcoin Price
+                    2. Etherum Price
+                    3. Celo Price
                 `;
       }
     else if ( data[0] == '5' && data[1] == '1') {
