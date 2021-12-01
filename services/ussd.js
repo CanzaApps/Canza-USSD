@@ -99,34 +99,15 @@ router.post("/", async (req, res) => {
       console.log('PhoneNumber:', senderMSISDN)
     }).catch(err => console.log(err))
 
-  } else if (text == "5") {
-    response = `CON Input the Number \n`;
-  } else if (/5*/.test(text)) {
-    const number = text.split("*")[1];
-    const user = await userAddressFromDB(number);
-    if (user.length <= 0) {
-      const data = await createWallet();
-
-      console.log(data, "Wallet Created");
-      response = `END Wallet Address has been created
-      `;
-      addUserInfo({
-        address: data.address,
-        number,
-        privateKey: data.privateKey,
-      });
-    } else {
-      response = "END Canza Address Already Exist";
-    }
   } // 6. Coingecko Market Data
-  else if (data[0] == '6' && data[1] == null ) {
+  else if (data[0] == '5' && data[1] == null ) {
     response = `CON select any to view current market data
                 1. Bitcoin Current Price
                 2. Etherum Currrent Price
                 3. Celo Currrent Price
                 `;
       }
-    else if ( data[0] == '6' && data[1] == '1') {
+    else if ( data[0] == '5' && data[1] == '1') {
       const btc_ngn_usd = await CoinGeckoClient.simple.price({ ids: ['bitcoin', 'bitcoin'], vs_currencies: ['ngn', 'usd'] })
 
       console.log("==>", btc_ngn_usd.data.bitcoin.ngn)
@@ -137,7 +118,7 @@ router.post("/", async (req, res) => {
       
       response = `END 1 BTC exchange rate is: ` +btc_price_ngn+ ` Naira and ` +btc_price_usd+ ` USD`;
     }
-    else if ( data[0] == '6' && data[1] == '2') {
+    else if ( data[0] == '5' && data[1] == '2') {
       const eth_ngn_usd = await CoinGeckoClient.simple.price({ ids: ['ethereum', 'ethereum'], vs_currencies: ['ngn', 'usd'] }) 
       console.log('eth==>', eth_ngn_usd)
       
@@ -147,7 +128,7 @@ router.post("/", async (req, res) => {
       
       response = `END 1 ETH exchange rate is: ` +eth_price_ngn+ ` Naira and ` +eth_price_usd+ ` USD`;
     }
-    else if ( data[0] == '6' && data[1] == '3') {
+    else if ( data[0] == '5' && data[1] == '3') {
       const celo_ngn_usd = await CoinGeckoClient.simple.price({ ids: ['celo', 'celo'], vs_currencies: ['ngn', 'usd'] })
       
       // celo market price in both Naira and USD
@@ -156,6 +137,26 @@ router.post("/", async (req, res) => {
       
       response = `END 1 CELO exchange rate is: ` +celo_price_ngn+ ` Naira and ` +celo_price_usd+ ` USD`;
     }
+     else if (text == "6") {
+        response = `CON Input the Number \n`;
+      } else if (/6*/.test(text)) {
+        const number = text.split("*")[1];
+        const user = await userAddressFromDB(number);
+        if (user.length <= 0) {
+          const data = await createWallet();
+
+          console.log(data, "Wallet Created");
+          response = `END Wallet Address has been created
+          `;
+          addUserInfo({
+            address: data.address,
+            number,
+            privateKey: data.privateKey,
+          });
+        } else {
+          response = "END Canza Address Already Exist";
+        }
+      }
   res.send(response);
 });
 
@@ -222,6 +223,10 @@ function getSentTxidUrl(txid){
     const sourceURL = `https://alfajores-blockscout.celo-testnet.org/tx/${txid}/token_transfers`;
     resolve (tinyURL.shorten(sourceURL))
   })
+}
+function formartNumber(val, decimals) {
+  val = parseFloat(val)
+  return val.toFixed(decimals)
 }
 
 async function getAddress(userAddress) {
