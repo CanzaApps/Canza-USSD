@@ -14,7 +14,6 @@ const CoinGeckoClient = new CoinGecko(); // initiate the CoinGecko API Client
 
 
 
->>>>>>> 55409bded5742d4f6e4ecc9c6928dc0ac1cfaa53
 // const { credential } = require("firebase-admin");
 
 const alfatores = process.env.ALFAJORES;
@@ -103,7 +102,7 @@ router.post("/", async (req, res) => {
 
   } // 6. Coingecko Market Data
   else if (data[0] == '5' && data[1] == null ) {
-    response = `CON select any to view current market prices
+    response = `CON Select current market prices
                     1. Bitcoin Price
                     2. Etherum Price
                     3. Celo Price
