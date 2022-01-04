@@ -7,7 +7,7 @@ require('./config/db.config')
 
 const app = express()
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 8000
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -16,10 +16,8 @@ app.use(cors())           // enable CORS
 
 const ussdRoute = require('./routes/users.route')
 
+// ussd endpoints
 app.use("/", ussdRoute)
-
-
-
 
 app.listen(PORT, () => {
     console.log(`listening on ${PORT}.`)
