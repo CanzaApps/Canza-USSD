@@ -32,7 +32,14 @@ const getUserById = async (id) => {
  */
 const updateUserById = async (userId, updateBody) => {
     const user = await getUserById(userId)
+    if(!user) {
+        console.log('User not found')
+    }
+
+    Object.assign(user, updateBody)
+    await user.save()
+    return user
 }
 
 
-module.exports = { getUserById, queryUsers}
+module.exports = { queryUsers, getUserById, updateUserById, }

@@ -1,4 +1,5 @@
 const User = require('../models/users.model')
+const { getUserById } = require('../services/user.service')
 
 exports.createUser = ({ firstName, lastName, phoneNumber, walletAddress, privateKey, hashed_password }) => {
     const newUser = new User({ firstName, lastName, phoneNumber, walletAddress, privateKey, hashed_password })
@@ -8,13 +9,18 @@ exports.createUser = ({ firstName, lastName, phoneNumber, walletAddress, private
     })
 }
 
-exports.updateUser = async ({ userId, firstName, lastName, hashed_password}) => {
+exports.updateUser = async (userId, updateBody) => {
     try {
         const query = {_id: userId}
-        const update = {firstName, lastName, hashed_password }
-        
-        const userDoc = await User.findOneAndUpdate(query, update, {new: true})
-        
+        // find user
+        const user = await getUserById(query)
+        if(!user) {
+            console.log('User not found')
+        }
+        Object.assign(user, updateBody)
+        await user.save()
+        console.log("user updated",user)
+        return user   
     } catch (error) {
         
     }

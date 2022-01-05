@@ -97,8 +97,11 @@ router.post("/", async(req, res, next) => {
             const user = await getUserAddress(phoneNumber)
             const userId = user[0]._id
 
+            updateBody = { firstName, lastName, hashed_password: encryptedPin.encryptedData }
+            console.log("user info to update", updateBody)
+
             await verifyUser(userId) // change isVerified to true, save and update user account details
-            await updateUser({userId, firstName: firstName, lastName: lastName, hashed_password: encryptedPin})
+            await updateUser(userId, updateBody)
             
             // send user a welcome message
             let message_welcome = `Welcome to Canaza Finance. \nYour account details have been Verified. \n to access Canaza Services please Dial *384*868785#.\n Your access pin: ${userNewPin}`
@@ -122,46 +125,51 @@ router.post("/", async(req, res, next) => {
 
     else if (text === '') {
         msg = 'CON Welcome to Canza Finance:'
-        msg += '\n1: Create Wallet'
-        msg += '\n2: Send Money'
-        msg += '\n3: Current Market Price'
-        msg += '\n4: Defi and Swap'
-        msg += '\n5: My Account'
+        msg += '\n1: Send Money'
+        msg += '\n2: Current Market Price'
+        msg += '\n3: Defi and Swap'
+        msg += '\n4: My Account'
         res.send(msg)
-    } else if ( data[0] == '1' && data[1] == null ) {
-        msg += `CON please enter your first name to create an account`
-        res.send(msg)
-    } else if (data[0] == '1' && data[1] !== '') {
-
-        const user = await getUserAddress(phoneNumber)
-        console.log("user details", user)
-        
-        // checks if the user address is available
-        if (user.length <= 0) {
-            firstName = data[1]
-            const wallet = await createWallet()
-            console.log("my name", firstName)
-            console.log("wallet created", wallet)
-
-            createUser({ firstName: firstName, phoneNumber, walletAddress: wallet.address, privateKey: wallet.privateKey })
-            msg += `END your wallet address and account created!!!`
-
-        } else {
-            msg += "END wallet address already exist!!!"
-        }
-        
     } 
+    
+    // create wallet not need here 
+    // else if ( data[0] == '1' && data[1] == null ) {
+    //     msg += `CON please enter your first name to create an account`
+    //     res.send(msg)
+    // } 
+
+    // else if (data[0] == '1' && data[1] !== '') {
+
+    //     const user = await getUserAddress(phoneNumber)
+    //     console.log("user details", user)
+        
+    //     // checks if the user address is available
+    //     if (user.length <= 0) {
+    //         firstName = data[1]
+    //         const wallet = await createWallet()
+    //         console.log("my name", firstName)
+    //         console.log("wallet created", wallet)
+
+    //         createUser({ firstName: firstName, phoneNumber, walletAddress: wallet.address, privateKey: wallet.privateKey })
+    //         msg += `END your wallet address and account created!!!`
+
+    //     } else {
+    //         msg += "END wallet address already exist!!!"
+    //     }
+        
+    // } 
+    
     // #1 send money
-    else if (data[0] == '2' && data[1] == null) {
+    else if (data[0] == '1' && data[1] == null) {
         msg += `CON Please Enter Recipient`
         res.send(msg) 
-    } else if (data[0] == '2' && data[1] !== '' && data[2] == null) {
+    } else if (data[0] == '1' && data[1] !== '' && data[2] == null) {
         msg += `CON Please Enter Amount to send`
         res.send(msg) 
     } 
     
     // transfer funds 
-    else if (data[0] == '2' && data[1] !== '' && data[2] !== '' ) {
+    else if (data[0] == '1' && data[1] !== '' && data[2] !== '' ) {
         senderMSISDN = phoneNumber
         receiverMSISDN = '+254' + data[1].substring(1) // Todo: change to nigeria phone code '+234'
         amount = data[2]
@@ -194,14 +202,14 @@ router.post("/", async(req, res, next) => {
     } 
     
     // #2 current market price from coingecko
-    else if (data[0] == '3' && data[1] == null) {
+    else if (data[0] == '2' && data[1] == null) {
         msg += `CON select any option to view current market data
         1. Bitcoin Current Price
         2. Etherum Currrent Price
         3. Celo Currrent Price`
         msg += footer
         res.send(msg)
-    } else if ( data[0] == '3' && data[1] == '1') {
+    } else if ( data[0] == '2' && data[1] == '1') {
         const btc_ngn_usd = await client.simplePrice({ ids: ['bitcoin', 'bitcoin'], vs_currencies: ['ngn', 'usd'] })
         
         // bitcion market price in both Naira and USD
@@ -210,7 +218,7 @@ router.post("/", async(req, res, next) => {
         
         msg += `END 1 BTC is: ` + btc_price_ngn + ` in Naira and ` + btc_price_usd + ` in USD`
         res.send(msg)
-    } else if ( data[0] == '3' && data[1] == '2') {
+    } else if ( data[0] == '2' && data[1] == '2') {
         const eth_ngn_usd = await client.simplePrice({ ids: ['ethereum', 'ethereum'], vs_currencies: ['ngn', 'usd'] })
         
         // ethereum market price in both Naira and USD
@@ -219,7 +227,7 @@ router.post("/", async(req, res, next) => {
 
         msg += `END 1 ETH is: ` + eth_price_ngn + ` in Naira and ` + eth_price_usd + ` in USD`
         res.send(msg)
-    } else if ( data[0] == '3' && data[1] == '3') {
+    } else if ( data[0] == '2' && data[1] == '3') {
         const celo_ngn_usd = await client.simplePrice({ ids: ['celo', 'celo'], vs_currencies: ['ngn', 'usd'] })
         
         // celo market price in both Naira and USD
@@ -229,38 +237,38 @@ router.post("/", async(req, res, next) => {
         msg += `END 1 CELO is: ` + celo_price_ngn + ` in Naira and ` + celo_price_usd + ` in USD` 
         res.send(msg)
     }
-        else if (data[0] == '4' && data[1] == null){
+    // #3 defi and swapping
+    else if (data[0] == '3' && data[1] == null){
         msg += `CON Defi Feature Coming soon`
         msg += footer
         res.send(msg)
     }
     
-    // account details 
-    else if (data[0] == '5' && data[1] == null){
+    // #4 account details 
+    else if (data[0] == '4' && data[1] == null){
         msg += `CON select account information you want to view
         1. Account Details
         2. Account Balance
         3. Password Reset`
         msg += footer
         res.send(msg)
-    } else if (data[0] == '5' && data[1] == '1') {
+    } else if (data[0] == '4' && data[1] == '1') {
         msg = await getAccountDetails(phoneNumber)
         res.send(msg)
-    } else if (data[0] == '5' && data[1] == '2') {
+    } else if (data[0] == '4' && data[1] == '2') {
         msg = await getAccountBalance(phoneNumber)
         res.send(msg)
-    } else if (data[0] == '5' && data[1] == '3') {
+    } else if (data[0] == '4' && data[1] == '3') {
         res.send(msg)
     }
     
     // select a correct option
     else {
         msg = 'CON Sorry, Please select an option'
-        msg += '\n1: Create Wallet'
-        msg += '\n2: Send Money'
-        msg += '\n3: Current Market Price'
-        msg += '\n4: Defi and Swap'
-        msg += '\n5: My Account'
+        msg += '\n1: Send Money'
+        msg += '\n2: Current Market Price'
+        msg += '\n3: Defi and Swap'
+        msg += '\n4: My Account'
         res.send(msg)
     }
 })
