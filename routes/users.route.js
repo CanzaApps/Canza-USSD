@@ -76,7 +76,7 @@ router.post("/", async(req, res, next) => {
         res.send(msg)
     } else if (data[0] !== '' && data[1] !== ''  && data[2] !== '' && data[3] !== '' && data[4] == null) {
 
-        msg = `CON By accessing this app you agree to the terms and conditions.\n https://canzafinance.com/ \nSelect: \n1. Agree. \n2. Disagree`
+        msg = `CON By accessing this app you agree to the terms and conditions.\n https://canzafinance.com/ \nPress 1 or 2: \n1. Agree. \n2. Disagree`
         res.send(msg)
     } else if (data[0] !== '' && data[1] !== ''  && data[2] !== '' && data[3] !== '' && data[4] == '1') {
         userNewPin = data[0]
