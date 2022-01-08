@@ -26,15 +26,32 @@ const userSchema = new Schema({
  * @returns {Promise<boolean>}
  */
 
-
-
 //  virtual pin field
-userSchema.virtual('pin').set(function (pin) {
-    this._pin = pin
-    // this.salt =
-})
+// userSchema.virtual('pin').set(function (pin) {
+//     this._pin = pin
+//     this.salt = uuidv1()
+//     this.hashed_password = this.encryptPassword(pin)
+// }).get(function() {
+//     return this._pin
+// })
 
+// userSchema.methods = {
+//     // authenticate user method
+//     authenticate: function(plainText) {
+//       return this.encryptPassword(plainText) === this.hashed_password
+//     },
 
-
+//     encryptPassword: function (pin) {
+//         if (!pin) return ''
+//         try {
+//           return crypto
+//             .createHmac('sha1', this.salt)
+//             .update(pin)
+//             .digest('hex')
+//         } catch (err) {
+//           return ''
+//         }
+//       },
+// }
 
 module.exports = mongoose.model('Users', userSchema)
