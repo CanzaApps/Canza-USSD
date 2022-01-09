@@ -24,10 +24,9 @@ exports.updateUser = async (userId, updateBody) => {
     } catch (error) {
         
     }
-
 }
 
-exports.getUserAddress = async(phoneNumber) => {
+exports.getUserAddress = async (phoneNumber) => {
     try {
         const user =  await User.find({ phoneNumber })
         return user
@@ -35,6 +34,19 @@ exports.getUserAddress = async(phoneNumber) => {
     } catch(error){
         console.log(error, "user not available!!!")
     }
+}
+
+exports.checkAuth = async (phoneNumber, pin) => {
+    User.findOne({phoneNumber}, (err, user) => {
+        if(err || !user) {
+
+            console.log(`User with that email ${phoneNumber} does not exist.`)
+        }
+          console.log("user", user)
+        if(!user.authenticate(pin)) {
+            console.log("pin donot match", pin)
+        }
+    })
 }
 
 exports.verifyUser = async (userId) => {

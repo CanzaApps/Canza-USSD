@@ -5,11 +5,11 @@ const { CoinGeckoClient } = require('coingecko-api-v3') // initiate the CoinGeck
 const ContractKit = require('@celo/contractkit')
 
 // imports models, utils, helpers, controllers and middlewares
-const { createUser, getUserAddress, updateUser, verifyUser } = require('../controllers/users.controller')
+const { createUser, getUserAddress, updateUser, checkAuth, verifyUser } = require('../controllers/users.controller')
 const { createWallet, getAccountBalance, getAccountDetails, transfercUSD } = require('../services/generate-wallet')
 const { sendMessage } = require('../config/at.config')
 const { getTxIdUrl } = require('../services/short-urls')
-const { encryptData, decryptData, formartNumber } = require('../utils')
+const { generatePin, encryptPin, encryptData, decryptData, formartNumber } = require('../utils')
 
 const kit = ContractKit.newKit(process.env.TEST_NET_ALFAJORES)
 // console.log("connected to celo!!!!", kit)
@@ -38,7 +38,7 @@ router.post("/", async(req, res, next) => {
     var data = text.split('*')
 
     let user = await getUserAddress(phoneNumber)
-   
+
     // create new user if not exists 
     if(user.length <= 0) {
         // check if wallet is available 
@@ -83,12 +83,11 @@ router.post("/", async(req, res, next) => {
         confirmPin = data[1]
         firstName = data[2]
         lastName = data[3]
-        
+                
         let senderMSISDN = phoneNumber.substring(1)
-        let encryptedPin = await encryptData(userNewPin.toString())
+        let hashed_password = encryptionPin(userNewPin.toString())
         console.log(confirmPin, userNewPin, firstName, lastName)
-        console.log("encrypt data",encryptedPin)
-        console.log("decrypt data",decryptData(encryptedPin))
+        console.log("encrypt data", hashed_password)
 
         // check if pin match
         if(userNewPin === confirmPin && userNewPin.length >= 4) {
@@ -97,14 +96,14 @@ router.post("/", async(req, res, next) => {
             const user = await getUserAddress(phoneNumber)
             const userId = user[0]._id
 
-            updateBody = { firstName, lastName, hashed_password: encryptedPin.encryptedData }
+            updateBody = { firstName, lastName, hashed_password }
             console.log("user info to update", updateBody)
 
             await verifyUser(userId) // change isVerified to true, save and update user account details
             await updateUser(userId, updateBody)
             
             // send user a welcome message
-            let message_welcome = `Welcome to Canaza Finance. \nYour account details have been Verified. \n to access Canaza Services please Dial *384*868785#.\n Your access pin: ${userNewPin}`
+            let message_welcome = `Welcome to Canza Finance. \nYour account details have been Verified. \n to access Canza Services please Dial *384*868785#.\n Your access pin: ${userNewPin}`
             sendMessage(senderMSISDN, message_welcome)
             msg = `END Thank. \nYour Account will be verified shortly`
             res.send(msg)
@@ -167,38 +166,55 @@ router.post("/", async(req, res, next) => {
         msg += `CON Please Enter Amount to send`
         res.send(msg) 
     } 
-    
+
+    // confirm pin
+    else if (data[0] == '1' && data[1] !== '' && data[2] !== '' && data[3] == null) { 
+        msg += `CON Please Enter your access Pin`
+        res.send(msg) 
+    }
+
     // transfer funds 
     else if (data[0] == '1' && data[1] !== '' && data[2] !== '' ) {
         senderMSISDN = phoneNumber
         receiverMSISDN = '+254' + data[1].substring(1) // Todo: change to nigeria phone code '+234'
         amount = data[2]
+        userInputPin = data[3]
+        en_userInputPin = encryptPin(userInputPin.toString())
 
         // get sender's name
         const user = await getUserAddress(senderMSISDN)
         let senderName = user[0].firstName
-        console.log("user name", senderName)
-        
-        let txReceipt = await transfercUSD(senderMSISDN, receiverMSISDN, amount)
-        console.log('tx details', txReceipt)
+        const currentUserPin  = user[0].hashed_password
 
-        if(txReceipt === 'failed'){
-            msg += `END Your transaction has failed due to insufficient balance`
-            res.send(msg)  
-            return
-        }
-        
-        let url = await getTxIdUrl(txReceipt)
-        console.log('tx URL', url)
-        
-        let message_to_sender = `KES ${amount} sent to ${receiverMSISDN}.\nTransaction URL: ${url}`
-        let message_to_receiver = `You have received KES ${amount} from ${senderName}.\nTransaction Link: ${url}`
+        // check if pin match user input pin
+        if(currentUserPin === en_userInputPin) {
+            console.log('pin match good')
+            
+            let txReceipt = await transfercUSD(senderMSISDN, receiverMSISDN, amount)
+            console.log('tx details', txReceipt)
+            
+            if(txReceipt === 'failed'){
+                msg += `END Your transaction has failed due to insufficient balance`
+                res.send(msg)
+                return
+            }
+            
+            let url = await getTxIdUrl(txReceipt)
+            console.log('tx URL', url)
+            
+            let message_to_sender = `KES ${amount} sent to ${receiverMSISDN}.\nTransaction URL: ${url}`
+            let message_to_receiver = `You have received KES ${amount} from ${senderName}.\nTransaction Link: ${url}`
+            
+            sendMessage(senderMSISDN, message_to_sender)
+            sendMessage(receiverMSISDN, message_to_receiver)
+            
+            msg += `END you have sent ` + amount + ` cUSD to ` + receiverMSISDN + `Celo Account`
+            res.send(msg)
 
-        sendMessage(senderMSISDN, message_to_sender)
-        sendMessage(receiverMSISDN, message_to_receiver)
-        
-        msg += `END you have sent` + amount + ` to ` + receiverMSISDN + `Celo Account`
-        res.send(msg)
+        } else if (currentUserPin !== en_userInputPin) {
+            msg = `END Your access pin does not match \n Retry again!!`
+            res.send(msg)
+        }  
     } 
     
     // #2 current market price from coingecko
@@ -249,7 +265,7 @@ router.post("/", async(req, res, next) => {
         msg += `CON select account information you want to view
         1. Account Details
         2. Account Balance
-        3. Password Reset`
+        3. Pin Reset`
         msg += footer
         res.send(msg)
     } else if (data[0] == '4' && data[1] == '1') {
@@ -259,7 +275,28 @@ router.post("/", async(req, res, next) => {
         msg = await getAccountBalance(phoneNumber)
         res.send(msg)
     } else if (data[0] == '4' && data[1] == '3') {
-        res.send(msg)
+        // reset by generating pin
+        try {
+            // get user id
+            senderMSISDN = phoneNumber
+            const user = await getUserAddress(senderMSISDN)
+            const userId = user[0]._id
+            let newUserPin = await generatePin()
+            let hashed_password = encryptPin(newUserPin)
+            console.log("generated pin", hashed_password)
+
+            let reset_pin_message = `Pin reset was successful.\n Your new Pin is ${newUserPin}.`
+            sendMessage(senderMSISDN, reset_pin_message)
+
+            console.log("user info to update", { hashed_password })
+            await updateUser(userId, { hashed_password })
+            
+            msg = `END Pin reset was successful.\n Kindly check SMS for Details`;
+            res.send(msg)
+        } catch(error) {
+            msg = `END Pin reset failed.`
+            res.send(msg)
+        }
     }
     
     // select a correct option
