@@ -46,7 +46,7 @@ router.post("/", async(req, res, next) => {
         createUser({ firstName: '', lastName: '', phoneNumber: phoneNumber, walletAddress: wallet.address, privateKey: wallet.privateKey, hashed_password: '00000'})
         
         // Todo: add message to alert user to verify their account 
-        msg += `END Your wallet address have been created!\n Please Dial *384*868785# to verify your account!`
+        msg += `END Your wallet address have been created!\n Please Dial *347*112# to verify your account!`
         res.send(msg)
     } 
 
@@ -60,7 +60,7 @@ router.post("/", async(req, res, next) => {
 
     if (data[0] == null || data[0] == '') {
        
-        msg = `CON Welcome to Canaza Finance. \nKindly Enter your details to verify your account.\n\nEnter new Pin`
+        msg = `CON Welcome to Canza Finance. \nKindly Enter your details to verify your account.\n\nEnter new Pin`
         res.send(msg)
     } else if (data[0] !== '' && data[1] == null) {
        
@@ -103,7 +103,7 @@ router.post("/", async(req, res, next) => {
             await updateUser(userId, updateBody)
             
             // send user a welcome message
-            let message_welcome = `Welcome to Canza Finance. \nYour account details have been Verified. \n to access Canza Services please Dial *384*868785#.\n Your access pin: ${userNewPin}`
+            let message_welcome = `Welcome to Canza Finance. \nYour account details have been Verified. \n to access Canza Services please Dial *347*112#.\n Your access pin: ${userNewPin}`
             sendMessage(senderMSISDN, message_welcome)
             msg = `END Thank. \nYour Account will be verified shortly`
             res.send(msg)
@@ -117,7 +117,7 @@ router.post("/", async(req, res, next) => {
         }
 
     } else if (data[0] !== '' && data[1] !== ''  && data[2] !== '' && data[3] !== '' && data[4] == '2'){
-        msg = `END Accept the terms & conditions to access Canaza Finance Services`
+        msg = `END Accept the terms & conditions to access Canza Finance Services`
         res.send(msg)
     }
 }
