@@ -2,7 +2,7 @@ const User = require('../models/users.model')
 const { getUserById } = require('../services/user.service')
 
 exports.createUser = ({ firstName, lastName, phoneNumber, walletAddress, privateKey, hashed_password }) => {
-    const newUser = new User({ firstName, lastName, phoneNumber, walletAddress, privateKey, hashed_password })
+    const newUser = new User({ firstName, lastName, phoneNumber, walletAddress, privateKey, hashed_password, isVerified: true })
 
     newUser.save(function(error){
         console.log(error)
@@ -56,6 +56,18 @@ exports.verifyUser = async (userId) => {
         
         const userDoc = await User.findOneAndUpdate(query, update, {new: true})
         console.log('is verified', userDoc)
+    } catch (error) {
+        console.log(error, 'unable to update')        
+    }
+}
+
+// check if user is verified
+exports.isVerified = async (userId) => {
+    try {
+        const query = {_id: userId}
+        const userDoc = await User.findOne(query)
+        console.log('is verified', userDoc.isVerified)
+        return userDoc.isVerified
     } catch (error) {
         console.log(error, 'unable to update')        
     }
