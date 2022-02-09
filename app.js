@@ -14,6 +14,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())   // cookie parser
 app.use(cors())           // enable CORS
 
+// require('./routes/v1/users.route')
 const ussdRoute = require('./routes/users.route')
 
 // ussd endpoints

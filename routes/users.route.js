@@ -6,10 +6,11 @@ const ContractKit = require('@celo/contractkit')
 
 // imports models, utils, helpers, controllers and middlewares
 const { createUser, getUserAddress, updateUser, checkAuth, verifyUser } = require('../controllers/users.controller')
+const { createTransaction } = require('../controllers/transactions.controller')
 const { createWallet, getAccountBalance, getAccountDetails, transfercUSD } = require('../services/generate-wallet')
 const { sendMessage } = require('../config/at.config')
 const { getTxIdUrl } = require('../services/short-urls')
-const { generatePin, encryptionPin, encryptData, decryptData, generateVerificationId, formartNumber } = require('../utils')
+const { generatePin, encryptionPin, generateVerificationId, formartNumber } = require('../utils')
 const { verify } = require('crypto')
 
 const kit = ContractKit.newKit(process.env.TEST_NET_ALFAJORES)
@@ -39,11 +40,12 @@ router.post("/", async(req, res, next) => {
     let msg = ''
     let senderMSISDN = phoneNumber.substring(1)
     // let accountNumber  = phoneNumber.replace()
-    console.log('senderMSISDN', phoneNumber.replace(/\d{4}$/, '****'))
+    // console.log('senderMSISDN', phoneNumber.replace(/\d{4}$/, '****'))
     const footer = '\n0: Back 00: Home'
     var data = text.split('*')
 
     let user = await getUserAddress(phoneNumber)
+    
 
     // create new user if not exists 
     // if(user.length <= 0) {
@@ -100,7 +102,7 @@ router.post("/", async(req, res, next) => {
         msg += '\n1. Agree.'
         msg += '2. Disagree'
         res.send(msg)
-    } else if (data[0] == '1' && data[1] !== '' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] == '1') {
+    } else if (data[0] == '1' && data[1] !== '' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] == '1' && data[6] == null) {
         userNewPin = data[1]
         confirmPin = data[2]
         firstName = data[3]
@@ -163,7 +165,7 @@ router.post("/", async(req, res, next) => {
             res.send(msg)
         }
 
-    } else if (data[0] == '2' && data[1] !== '' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] == '2') {
+    } else if (data[0] == '2' && data[1] !== '' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] == '2' && data[6] == null) {
         msg = `END Accept the terms & conditions to access Canza Finance Services`
         res.send(msg)
     }
@@ -198,17 +200,25 @@ router.post("/", async(req, res, next) => {
         msg += `CON Please Enter Amount to Transfer`
         res.send(msg) 
     } else if (data[0] == '2' && data[1] == '1' && data[2] !== '' && data[3] !== '' && data[4] == null) {
+        amount = data[3]
+        console.log('amount', amount)
         msg += `CON Please Enter your access Pin`
         res.send(msg) 
     } else if (data[0] == '2' && data[1] == '1' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] == null) {
-        userInputPin = data[1]
         senderMSISDN = phoneNumber
+        receiverMSISDN = '+254' + data[2].substring(1) // Todo: change to nigeria phone code '+234'
+        amount = data[3]
+        userInputPin = data[4]
         en_userInputPin = encryptionPin(userInputPin.toString())
+
+        console.log("userInputPin", userInputPin, en_userInputPin, receiverMSISDN, 'amout to send', amount)
 
         // get sender's name
         const user = await getUserAddress(senderMSISDN)
-        let userName = user[0].firstName
+        let firstName = user[0].firstName
+        let lastName = user[0].lastName
         const currentUserPin  = user[0].hashed_password
+        const senderName = `${firstName} ${lastName}`
 
         // check if pin match user input pin
         if(currentUserPin === en_userInputPin) {
@@ -224,12 +234,10 @@ router.post("/", async(req, res, next) => {
             }
 
             let txHash = txReceipt.transactionHash
-            let txFee = txReceipt.gasUsed
-            let txStatus = txReceipt.status
 
             // save transaction details
-            let txUrl = await getTxIdUrl(txReceipt)
-            console.log('tx URL', txUrl, txHash, txFee, txStatus)
+            let txUrl = await getTxIdUrl(txHash)
+            console.log('tx URL', txUrl)
             
             let message_to_sender = `${amount} NGN sent to ${receiverMSISDN}.\nTransaction URL: ${txUrl}`
             let message_to_receiver = `You have received ${amount} NGN from ${senderName}.\nTransaction URL: ${txUrl}`
@@ -245,9 +253,9 @@ router.post("/", async(req, res, next) => {
         }
     }
     
-    // Withdraw Funds
+    // Buy Funds
     else if (data[0] == '2' && data[1] == '2' && data[2] == null) {
-        msg = `END  Withdraw Funds Feature Coming Soon`
+        msg = `END  Buy Funds Feature Coming Soon`
         res.send(msg)
     } 
     
@@ -286,14 +294,17 @@ router.post("/", async(req, res, next) => {
         msg += `CON Please enter your access pin to confirm to sell cUSD`
         res.send(msg)
     } else if (data[0] == '2' && data[1] == '3' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '1' && data[7] !== '' && data[8] == null) {
+        number = 
         sellerMSISDN = phoneNumber
-        escrowMSISDN = phoneNumber // Todo: change to nigeria phone code '+234'
-        agentMSISDN = phoneNumber  // Todo: add agent phone number
+        escrowMSISDN = '+254712380880'  // Todo: change to nigeria phone code '+234' escrowMSISDN
+        agentMSISDN = '+254712380880'  // Todo: add agent phone number
+
+        console.log('sellerMSISDN', sellerMSISDN, 'escrowMSISDN', escrowMSISDN)
 
         coinToSell = data[2]
         amountToSell = data[3]
         cashPickupLocation = data[4]
-        lga = data[5]
+        localGovernmentArea = data[5]
         pickupPerson = data[6]
         userInputPin = data[7]
 
@@ -307,30 +318,30 @@ router.post("/", async(req, res, next) => {
         else if (data[4]==='4'){cashPickupLocation = 'Akwa-Ibom'}
         else{cashPickupLocation = 'Ibadan'}
         // localGovArea
-        if (data[5]==='1'){lga = 'Biase LGA'}
-        else if(data[5]==='2'){lga = 'Akpabuyo LGA'}
-        else if(data[5]==='3'){lga = 'Akampkpa LGA'}
-        else{lga = 'Biase LGA'}
+        if (data[5]==='1'){localGovernmentArea = 'Biase LGA'}
+        else if(data[5]==='2'){localGovernmentArea = 'Akpabuyo LGA'}
+        else if(data[5]==='3'){localGovernmentArea = 'Akampkpa LGA'}
+        else{localGovernmentArea = 'Biase LGA'}
         // pickup person
         if( data[6]==='1'){pickupPerson = 'My self'}
         else if (data[6]==='2'){pickupPerson = 'Another person'}
         else{pickupPerson = 'My self'}
 
-        console.log('coinToSell', coinToSell, 'amountToSell', amountToSell, 'cashPickupLocation', cashPickupLocation, 'lga', lga, 'pickupPerson', pickupPerson, 'userInputPin', userInputPin)
+        console.log('coinToSell', coinToSell, 'amountToSell', amountToSell, 'cashPickupLocation', cashPickupLocation, 'localGovernmentArea', localGovernmentArea, 'pickupPerson', pickupPerson, 'userInputPin', userInputPin)
+        
         // get seller info 
         const user = await getUserAddress(phoneNumber)
         let senderFirstName = user[0].firstName
         let senderLastName = user[0].lastName
+        let userId = user[0]._id
         const userFullName = senderFirstName + '' + senderLastName
         const currentUserPin = user[0].hashed_password
-
-        // console.log('userFullName', userFullName, 'senderFirstName', senderFirstName, 'senderLastName', senderLastName, 'currentUserPin', currentUserPin)
 
         // check if pin match user input pin
         if(currentUserPin === en_userInputPin) {
             console.log('pin match good')
             
-            let txReceipt = await transfercUSD(senderMSISDN, escrowMSISDN, amountToSell)
+            let txReceipt = await transfercUSD(sellerMSISDN, escrowMSISDN, amountToSell)
             console.log('tx details', txReceipt)
             
             if(txReceipt === 'failed'){
@@ -339,20 +350,24 @@ router.post("/", async(req, res, next) => {
                 return
             }
             
-            let url = await getTxIdUrl(txReceipt)
-            console.log('tx URL', url)
+            let transactionUrl = await getTxIdUrl(txReceipt)
+            console.log('tx URL', transactionUrl)
+
+            // save transaction to db
+            const transactionDoc = { userId, coinToSell, amountToSell, cashPickupLocation, localGovernmentArea, pickupPerson, verificationId, transactionUrl }
+            await createTransaction(transactionDoc)
             
-            let message_to_sell = `Your transaction has been completed. ${amountToSell} NGN has been sent to Canza escrow ${escrowMSISDN}.\nTransaction URL: ${url} \nVerification ID ${verificationId}.`
-            let message_to_seller = `You have a cash pick-up order for ${amountToSell} NGN. In order to pick up your cash, schedule a meeting with a Canza Agent. Call or text 008654324 \nTransaction URL: ${url}`
-            let message_to_canza = `You have recived ${amountToSell} NGN from ${sellerMSISDN}.\nTransaction Link: ${url} \nVerification ID ${verificationId}.`
-            let message_to_agent = `You have received  a request from Canza Finance to give ${sellerMSISDN}, ${amountToSell} NGN .\nTransaction URL: ${url} \nVerificaction ID ${verificationId}`
+            let message_to_sell = `Your transaction has been completed. ${amountToSell} NGN has been sent to Canza escrow ${escrowMSISDN}.\nTransaction URL: ${transactionUrl} \nVerification ID ${verificationId}.`
+            let message_to_seller = `You have a cash pick-up order for ${amountToSell} NGN. In order to pick up your cash, schedule a meeting with a Canza Agent. Call or text 008654324 \nTransaction URL: ${transactionUrl}`
+            let message_to_canza = `You have recived ${amountToSell} NGN from ${sellerMSISDN}, ${userFullName}.\nTransaction Link: ${transactionUrl} \nVerification ID ${verificationId}.`
+            let message_to_agent = `You have received  a request from Canza Finance to give ${sellerMSISDN}, ${amountToSell} NGN .\nTransaction URL: ${transactionUrl} \nVerificaction ID ${verificationId}`
             
             sendMessage(sellerMSISDN, message_to_sell)
             sendMessage(sellerMSISDN, message_to_seller)
             sendMessage(escrowMSISDN, message_to_canza)
             sendMessage(agentMSISDN, message_to_agent)
 
-            msg += `END Your transaction has been completed.\nTransaction Link: ${url}`
+            msg += `END Your transaction has been completed.\nTransaction Link: ${transactionUrl}`
             res.send(msg)
         }
          else {
@@ -369,13 +384,13 @@ router.post("/", async(req, res, next) => {
         res.send(msg)
     } else if (data[0] == '2' && data[1] == '3' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '2' && data[7] !== '' && data[8] !== '' && data[9] == null) {
         sellerMSISDN = phoneNumber
-        escrowMSISDN = phoneNumber // Todo: change to nigeria phone code '+234'
-        agentMSISDN = phoneNumber  // Todo: add agent phone number
+        escrowMSISDN = '+254712380880'  // Todo: change to nigeria phone code '+234' escrowMSISDN
+        agentMSISDN = '+254712380880'  // Todo: add agent phone number
 
         coinToSell = data[2]
         amountToSell = data[3]
         cashPickupLocation = data[4]
-        lga = data[5]
+        localGovernmentArea = data[5]
         pickupPerson = data[6]
         recipientMSISDN = data[7]
         userInputPin = data[8]
@@ -383,7 +398,23 @@ router.post("/", async(req, res, next) => {
         en_userInputPin = encryptionPin(userInputPin.toString())
         verificationId = generateVerificationId()
 
-        console.log('coinToSell', coinToSell, 'amountToSell', amountToSell, 'cashPickupLocation', cashPickupLocation, 'lga', lga, 'pickupPerson', pickupPerson, 'userInputPin', userInputPin, 'recipientMSISDN', recipientMSISDN)
+        // cashPickupLocation
+        if(data[4]==='1'){cashPickupLocation = 'Ikeja'}
+        else if (data[4]==='2'){cashPickupLocation = 'Ibadan'}
+        else if (data[4]==='3'){cashPickupLocation = 'Cross River'}
+        else if (data[4]==='4'){cashPickupLocation = 'Akwa-Ibom'}
+        else{cashPickupLocation = 'Ibadan'}
+        // localGovArea
+        if (data[5]==='1'){localGovernmentArea = 'Biase LGA'}
+        else if(data[5]==='2'){localGovernmentArea = 'Akpabuyo LGA'}
+        else if(data[5]==='3'){localGovernmentArea = 'Akampkpa LGA'}
+        else{localGovernmentArea = 'Biase LGA'}
+        // pickup person
+        if( data[6]==='1'){pickupPerson = 'My self'}
+        else if (data[6]==='2'){pickupPerson = 'Another person'}
+        else{pickupPerson = 'My self'}
+
+        console.log('coinToSell', coinToSell, 'amountToSell', amountToSell, 'cashPickupLocation', cashPickupLocation, 'localGovernmentArea', localGovernmentArea, 'pickupPerson', pickupPerson, 'userInputPin', userInputPin, 'recipientMSISDN', recipientMSISDN)
 
         // get seller info 
         const user = await getUserAddress(phoneNumber)
@@ -396,7 +427,7 @@ router.post("/", async(req, res, next) => {
         if(currentUserPin === en_userInputPin) {
             console.log('pin match good')
 
-            let txReceipt = await transfercUSD(senderMSISDN, escrowMSISDN, amountToSell)
+            let txReceipt = await transfercUSD(sellerMSISDN, escrowMSISDN, amountToSell)
             console.log('tx details', txReceipt)
             
             if(txReceipt === 'failed'){
@@ -411,7 +442,7 @@ router.post("/", async(req, res, next) => {
             let message_to_sell = `Your transaction has been completed. ${amountToSell} NGN has been sent to Canza escrow ${escrowMSISDN}.\nTransaction URL: ${url} \nVerification ID ${verificationId}.`
             let message_to_seller = `You have a cash pick-up order for ${amountToSell} NGN. In order to pick up your cash, schedule a meeting with a Canza Agent. Call or text 008654324 \nTransaction URL: ${url}`
             let message_to_recipient = `You have a cash pick-up order for ${amountToSell} NGN for ${sellerMSISDN}.`
-            let message_to_canza = `You have recived ${amountToSell} NGN from ${sellerMSISDN}.\nTransaction Link: ${url} \nVerification ID ${verificationId}.`
+            let message_to_canza = `You have recived ${amountToSell} NGN from ${sellerMSISDN}, ${userFullName}.\nTransaction Link: ${url} \nVerification ID ${verificationId}.`
             let message_to_agent = `You have received  a request from Canza Finance to give ${sellerMSISDN}, ${amountToSell} NGN .\nTransaction URL: ${url} \nVerificaction ID ${verificationId}`
 
             sendMessage(sellerMSISDN, message_to_sell)
