@@ -8,9 +8,10 @@ const ContractKit = require('@celo/contractkit')
 const { createUser, getUserAddress, updateUser, checkAuth, verifyUser } = require('../controllers/users.controller')
 const { createAgent, getAgentLocation } = require('../controllers/agents.controller')
 const { createTransaction } = require('../controllers/transactions.controller')
-const { createWallet, getAccountBalance, getAccountDetails, transfercUSD } = require('../services/generate-wallet')
+const { createWallet, getAccountBalance, getAccountDetails, transfercUSD, buyCELO } = require('../services/generate-wallet')
 const { sendMessage } = require('../config/at.config')
 const { getTxIdUrl } = require('../services/short-urls')
+const { sendEmail } = require('../config/mailgun.config')
 const { generatePin, encryptionPin, generateVerificationId, formartNumber } = require('../utils')
 const { verify } = require('crypto')
 
@@ -252,9 +253,8 @@ router.post("/", async(req, res, next) => {
                 return
             }
 
-            let txHash = txReceipt.transactionHash
-
             // save transaction details
+            let txHash = txReceipt.transactionHash
             let txUrl = await getTxIdUrl(txHash)
             console.log('tx URL', txUrl)
             
@@ -265,18 +265,61 @@ router.post("/", async(req, res, next) => {
             sendMessage(receiverMSISDN, message_to_receiver)
 
             msg += `END Your transaction has been completed.\nTransaction URL: ${txUrl}`
-
             // msg += `END Your transaction has been completed. You have sent ${amount} cUSD to ${receiverMSISDN}`
             res.send(msg)
-
         }
     }
     
     // Buy Funds
     else if (data[0] == '2' && data[1] == '2' && data[2] == null) {
-        msg = `END  Buy Funds Feature Coming Soon`
+        msg+= `CON Enter amount of Celo to buy`
         res.send(msg)
-    } 
+    } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] == null) {
+        msg += `CON Please insert your Pin to confirm purchase of ${data[2]} Celo`
+        res.send(msg)      
+    } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] == null) {
+        senderMSISDN = phoneNumber
+        _amount = data[2]
+        amount = kit.web3.utils.toWei(`${_amount}`)
+        userInputPin = data[3]
+        en_userInputPin = encryptionPin(userInputPin.toString())
+
+        console.log("userInputPin", userInputPin, en_userInputPin, 'amount to send', amount)
+
+        // get buyers info
+        const user = await getUserAddress(senderMSISDN)
+        const currentUserPin  = user[0].hashed_password
+        const buyerAddress = user[0].walletAddress
+        const buyerKey = user[0].privateKey
+        // const privateKeyBuffer = Buffer.from(privateKey.substring(2,66), 'hex')
+        // console.log('privateKey', privateKey.substring(2), privateKeyBuffer)
+
+        // check if pin match user input pin
+        if(currentUserPin === en_userInputPin) {
+            console.log('pin match good')
+            
+            let txReceipt = await buyCELO(senderMSISDN, amount)
+            // console.log('tx details', txReceipt)
+
+            if(txReceipt === 'failed'){
+                msg += `END Your transaction has failed due to insufficient balance`
+                return res.send(msg)
+            }
+
+            let txUrl = await getTxIdUrl(txReceipt)
+            console.log('tx URL', txUrl)
+
+            // let message_to_buy = ``
+            // sendMessage(senderMSISDN, message_to_buy)
+
+            msg += `END Your transaction has been completed.\nPlease check your SMS messages for Updates`
+            res.send(msg)
+        }
+         else {
+            msg += `END Your access pin does not match \n Please Retry again!!`
+            res.send(msg)
+        }
+    }
     
     // Sell Crypto
     else if (data[0] == '2' && data[1] == '3' && data[2] == null) {

@@ -7,22 +7,26 @@
 ## Dotenv variables
 
 - port connection
-PORT=8000
+1. PORT=8000
 
 - db connection
-DEV_MONGO_URI='replace with local Mongodb'
-PRO_MONGO_URI='replace with online Mongodb
+1. DEV_MONGO_URI='replace with local Mongodb'
+2. PRO_MONGO_URI='replace with online Mongodb
 
 - celo blockchain connection
-TEST_NET_ALFAJORES=https://alfajores-forno.celo-testnet.org
-MAIN_NET_ALFAJORES=https://forno.celo.org
+1. TEST_NET_ALFAJORES=https://alfajores-forno.celo-testnet.org
+2. MAIN_NET_ALFAJORES=https://forno.celo.org
 
 - crypto
-SECRET_KEY_HASH=sha256
+1. SECRET_KEY_HASH=sha256
 
 - africa's talking api
-AT_API_KEY=b2db2b9ff7e9098dc558cb21f9d75b5ed39900aac18eda40aa8acb1e62c7959c
-AT_API_USERNAME=sandbox
+1. AT_API_KEY=b2db2b9ff7e9098dc558cb21f9d75b5ed39900aac18eda40aa8acb1e62c7959c
+2. AT_API_USERNAME=sandbox
+   
+3. AT_API_KEY=
+4. AT_API_USERNAME=
+
 
 ## Connect your account
 
