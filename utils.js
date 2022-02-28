@@ -1,42 +1,54 @@
 const crypto = require('crypto')
+const { v1: uuidv1 } =  require('uuid')
+const randomstring = require('randomstring')
 
-// defining key
-const key = crypto.randomBytes(32);
-// creating and initializg the static iv
-const iv = crypto.randomBytes(16)
+const key = crypto.randomBytes(32) // defining key
+const iv = crypto.randomBytes(16) // creating and initializg the static iv
 
-// encryption Key sha256
-const encryptionKey = (userPhone) => {
-  const en_key = crypto.createHash('sha256').update(userPhone).digest('hex')
+// generate 4 random number pin
+function generatePin(){
+  return new Promise(resolve => {    
+    let loginPin = randomstring.generate({ length: 4, charset: 'numeric' });
+    resolve (loginPin);
+  });
+}
+
+// encryption sha256
+const encryptionPin = (pin) => {
+  const en_key = crypto.createHash('sha256').update(pin).digest('hex')
   return en_key
 }
 
 // encrypt text 
 const encryptData = async (text) => {
   let cipherText = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv)
-  
   let encrypted = cipherText.update(text)
 
   // using concatenation
   encrypted = Buffer.concat([encrypted, cipherText.final()])
 
-  return { iv: iv.toString('hex'),
-     encryptedData: encrypted.toString('hex') }
+  return { iv: iv.toString('hex'), encryptedData: encrypted.toString('hex') }
 }
 
 // decrypt data 
-const decryptData = async (text) => {
+function decryptData (text) {
   let iv = Buffer.from(text.iv, 'hex')
   let encryptedText = Buffer.from(text.encryptedData, 'hex')
 
   // creating decipher
   let decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key), iv)
-  
   // updating encrypted text
   let decrypted = decipher.update(encryptedText)
   decrypted = Buffer.concat([decrypted, decipher.final()])
 
   return decrypted.toString()
+}
+
+// generate unique verification id
+// @params length is number of characters
+function generateVerificationId () {
+  const verificationId = uuidv1().replace(/-/g, '').substring(0, 6)
+  return verificationId
 }
 
 // @params value is number 
@@ -50,6 +62,4 @@ function emailIsValid (email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-
-
-module.exports = { encryptData, decryptData, formartNumber, emailIsValid }
+module.exports = { generatePin, encryptionPin, encryptData, decryptData, generateVerificationId, formartNumber, emailIsValid }

@@ -7,13 +7,14 @@ require('./config/db.config')
 
 const app = express()
 
-const PORT = process.env.PORT || 8000
+const PORT = process.env.PORT || 3000
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())   // cookie parser
 app.use(cors())           // enable CORS
 
+// require('./routes/v1/users.route')
 const ussdRoute = require('./routes/users.route')
 
 // ussd endpoints

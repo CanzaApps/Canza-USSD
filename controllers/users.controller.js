@@ -2,7 +2,7 @@ const User = require('../models/users.model')
 const { getUserById } = require('../services/user.service')
 
 exports.createUser = ({ firstName, lastName, phoneNumber, walletAddress, privateKey, hashed_password }) => {
-    const newUser = new User({ firstName, lastName, phoneNumber, walletAddress, privateKey, hashed_password })
+    const newUser = new User({ firstName, lastName, phoneNumber, walletAddress, privateKey, hashed_password, isVerified: true })
 
     newUser.save(function(error){
         console.log(error)
@@ -24,10 +24,9 @@ exports.updateUser = async (userId, updateBody) => {
     } catch (error) {
         
     }
-
 }
 
-exports.getUserAddress = async(phoneNumber) => {
+exports.getUserAddress = async (phoneNumber) => {
     try {
         const user =  await User.find({ phoneNumber })
         return user
@@ -37,6 +36,19 @@ exports.getUserAddress = async(phoneNumber) => {
     }
 }
 
+exports.checkAuth = async (phoneNumber, pin) => {
+    User.findOne({phoneNumber}, (err, user) => {
+        if(err || !user) {
+
+            console.log(`User with that email ${phoneNumber} does not exist.`)
+        }
+          console.log("user", user)
+        if(!user.authenticate(pin)) {
+            console.log("pin donot match", pin)
+        }
+    })
+}
+
 exports.verifyUser = async (userId) => {
     try {
         const query = {_id: userId}
@@ -44,6 +56,18 @@ exports.verifyUser = async (userId) => {
         
         const userDoc = await User.findOneAndUpdate(query, update, {new: true})
         console.log('is verified', userDoc)
+    } catch (error) {
+        console.log(error, 'unable to update')        
+    }
+}
+
+// check if user is verified
+exports.isVerified = async (userId) => {
+    try {
+        const query = {_id: userId}
+        const userDoc = await User.findOne(query)
+        console.log('is verified', userDoc.isVerified)
+        return userDoc.isVerified
     } catch (error) {
         console.log(error, 'unable to update')        
     }
