@@ -1,7 +1,7 @@
 const express = require('express')
 const { ussdRouter } = require ('ussd-router')
 const { CoinGeckoClient } = require('coingecko-api-v3') // initiate the CoinGecko API Client
-
+const mailgun = require("mailgun-js")
 const ContractKit = require('@celo/contractkit')
 
 // imports models, utils, helpers, controllers and middlewares
@@ -16,6 +16,7 @@ const { generatePin, encryptionPin, generateVerificationId, formartNumber } = re
 const { verify } = require('crypto')
 
 const kit = ContractKit.newKit(process.env.TEST_NET_ALFAJORES)
+const mg = mailgun({ apiKey: process.env.MAILGUN_APIKEY, domain: process.env.MAILGUN_DOMAIN })
 // console.log("connected to celo!!!!", kit)
 const router = express.Router()
 const client = new CoinGeckoClient({ timeout: 10000, autoRetry: true })
@@ -277,29 +278,26 @@ router.post("/", async(req, res, next) => {
     } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] == null) {
         msg += `CON Please insert your Pin to confirm purchase of ${data[2]} Celo`
         res.send(msg)      
-    } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] == null) {
+    } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] == null) {
         senderMSISDN = phoneNumber
         _amount = data[2]
         amount = kit.web3.utils.toWei(`${_amount}`)
         userInputPin = data[3]
         en_userInputPin = encryptionPin(userInputPin.toString())
+        console.log("userInputPin", userInputPin, en_userInputPin, senderMSISDN, 'amount to buy', amount)
 
-        console.log("userInputPin", userInputPin, en_userInputPin, 'amount to send', amount)
-
-        // get buyers info
+        // get buyers information
         const user = await getUserAddress(senderMSISDN)
         const currentUserPin  = user[0].hashed_password
-        const buyerAddress = user[0].walletAddress
-        const buyerKey = user[0].privateKey
+        // const buyerAddress = user[0].walletAddress
+        // const buyerKey = user[0].privateKey
         // const privateKeyBuffer = Buffer.from(privateKey.substring(2,66), 'hex')
-        // console.log('privateKey', privateKey.substring(2), privateKeyBuffer)
-
+        
         // check if pin match user input pin
         if(currentUserPin === en_userInputPin) {
             console.log('pin match good')
             
             let txReceipt = await buyCELO(senderMSISDN, amount)
-            // console.log('tx details', txReceipt)
 
             if(txReceipt === 'failed'){
                 msg += `END Your transaction has failed due to insufficient balance`
@@ -311,15 +309,16 @@ router.post("/", async(req, res, next) => {
 
             // let message_to_buy = ``
             // sendMessage(senderMSISDN, message_to_buy)
-
-            msg += `END Your transaction has been completed.\nPlease check your SMS messages for Updates`
+            
+            
+            msg += `END Your transaction has been completed.\nYou have bought ${amount} Celo`
             res.send(msg)
-        }
-         else {
+        
+        } else {
             msg += `END Your access pin does not match \n Please Retry again!!`
             res.send(msg)
         }
-    }
+    } 
     
     // Sell Crypto
     else if (data[0] == '2' && data[1] == '3' && data[2] == null) {
@@ -396,7 +395,7 @@ router.post("/", async(req, res, next) => {
         let senderFirstName = user[0].firstName
         let senderLastName = user[0].lastName
         let userId = user[0]._id
-        const userFullName = senderFirstName + '' + senderLastName
+        const userFullName = senderFirstName + ' ' + senderLastName
         const currentUserPin = user[0].hashed_password
 
         // check if pin match user input pin
@@ -421,13 +420,22 @@ router.post("/", async(req, res, next) => {
             
             let message_to_sell = `Your transaction has been completed. ${amountToSell} NGN has been sent to Canza escrow ${escrowMSISDN}.\nTransaction URL: ${transactionUrl} \nVerification ID ${verificationId}.`
             let message_to_seller = `You have a cash pick-up order for ${amountToSell} NGN. In order to pick up your cash, schedule a meeting with a Canza Agent. Call or text 008654324 \nTransaction URL: ${transactionUrl}`
-            let message_to_canza = `You have recived ${amountToSell} NGN from ${sellerMSISDN}, ${userFullName}.\nTransaction Link: ${transactionUrl} \nVerification ID ${verificationId}.`
+            let message_to_canza = `You have recived a cash pickup order of ${amountToSell} NGN from ${sellerMSISDN}, ${userFullName}.\nTransaction Link: ${transactionUrl} \nVerification ID ${verificationId}.`
             let message_to_agent = `You have received  a request from Canza Finance to give ${sellerMSISDN}, ${amountToSell} NGN .\nTransaction URL: ${transactionUrl} \nVerificaction ID ${verificationId}`
             
             sendMessage(sellerMSISDN, message_to_sell)
             sendMessage(sellerMSISDN, message_to_seller)
             sendMessage(escrowMSISDN, message_to_canza)
             sendMessage(agentMSISDN, message_to_agent)
+
+            // send email to canza escrow
+            const data = {
+                subject: 'New Cash Pickup Order',
+                text: `You have recived a request from Canza finance to give ${sellerMSISDN}, ${userFullName}, amount ${amountToSell} NGN \nTransaction Link: ${transactionUrl} \nVerification ID ${verificationId}. \nPlease contact the user to arrange a meeting with a Canza Agent ${agentMSISDN} for pickup location ${cashPickupLocation}.`
+            }
+
+            // send order confirmation email            
+            await sendEmail('k.achinonu@canza.io', data)
 
             msg += `END Your transaction has been completed.\nTransaction Link: ${transactionUrl}`
             res.send(msg)
@@ -517,6 +525,15 @@ router.post("/", async(req, res, next) => {
             sendMessage(recipientMSISDN, message_to_recipient)
             sendMessage(escrowMSISDN, message_to_canza)
             sendMessage(agentMSISDN, message_to_agent)
+
+            // send email to canza escrow
+            const data = {
+                subject: 'New Cash Pickup Order',
+                text: `You have recived a request from Canza finance to give ${recipientMSISDN}, amount ${amountToSell} NGN \nTransaction Link: ${transactionUrl} \nVerification ID ${verificationId}. \nPlease contact the user to arrange a meeting with a Canza Agent ${agentMSISDN} for pickup location ${cashPickupLocation}.`
+            }
+
+            // send order confirmation email            
+            await sendEmail('k.achinonu@canza.io', data)
 
             msg += `END Your transaction has been completed.\nTransaction Link: ${url}`
             res.send(msg)
