@@ -9,6 +9,7 @@ const transactionSchema = new Schema({
     cashPickupLocation: { type: String, required: true, },
     pickupPerson: { type: String, required: true, },
     localGovernmentArea: { type: String, required: true, },
+    remarks: { type: String, },
     verificationId: { type: String, required: true, },
     transactionUrl: { type: String, required: true, },
     status: { type: String, required: true, default: 'pending' }, // pending, completed, cancelled

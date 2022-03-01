@@ -1,6 +1,6 @@
 // africa's talking api
 const atCredentials = {
-  apiKey: process.env.AT_API_KEY,
+  apiKey: process.env.TEST_AT_API_KEY,
   username: process.env.AT_API_USERNAME
 }
 
@@ -17,8 +17,4 @@ const sendMessage = async (to, message) => {
   }
 }
 
-// twilio
-
-
-
-module.exports = { sendMessage, }
+module.exports = { sendMessage }

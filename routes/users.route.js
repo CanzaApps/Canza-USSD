@@ -276,13 +276,16 @@ router.post("/", async(req, res, next) => {
         msg+= `CON Enter amount of Celo to buy`
         res.send(msg)
     } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] == null) {
-        msg += `CON Please insert your Pin to confirm purchase of ${data[2]} Celo`
+        msg += `CON Please add Remarks for your transaction (Buy Celo)`
         res.send(msg)      
     } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] == null) {
+        msg += `CON Please insert your Pin to confirm purchase of ${data[2]} Celo`
+        res.send(msg) 
+    } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] == null) {
         senderMSISDN = phoneNumber
         _amount = data[2]
         amount = kit.web3.utils.toWei(`${_amount}`)
-        userInputPin = data[3]
+        userInputPin = data[4]
         en_userInputPin = encryptionPin(userInputPin.toString())
         console.log("userInputPin", userInputPin, en_userInputPin, senderMSISDN, 'amount to buy', amount)
 
@@ -307,8 +310,8 @@ router.post("/", async(req, res, next) => {
             let txUrl = await getTxIdUrl(txReceipt)
             console.log('tx URL', txUrl)
 
-            // let message_to_buy = ``
-            // sendMessage(senderMSISDN, message_to_buy)
+            let message_to_buy = `You have purchased Celo.\nTransaction URL: ${txUrl}`
+            sendMessage(senderMSISDN, message_to_buy)
             
             
             msg += `END Your transaction has been completed.\nYou have bought ${amount} Celo`
@@ -351,13 +354,15 @@ router.post("/", async(req, res, next) => {
         1. My self
         2. Another person`
         res.send(msg)
-    } else if (data[0] == '2' && data[1] == '3' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '1' && data[7] == null) {	
+    } else if (data[0] == '2' && data[1] == '3' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '1' && data[7] == null) {
+        msg += `CON Please add Remarks for your transaction (Sell cUSD)`
+        res.send(msg)
+    } else if (data[0] == '2' && data[1] == '3' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '1' && data[7] !== '' && data[8] == null) {	
         msg += `CON Please enter your access pin to confirm to sell cUSD`
         res.send(msg)
-    } else if (data[0] == '2' && data[1] == '3' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '1' && data[7] !== '' && data[8] == null) {
-        number = 
+    } else if (data[0] == '2' && data[1] == '3' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '1' && data[7] !== '' && data[8] !== '' && data[9] !== '' && data[10] == null) {
         sellerMSISDN = phoneNumber
-        escrowMSISDN = '+2347061974255'  // Todo: change to nigeria phone code '+234' escrowMSISDN
+        escrowMSISDN = '+2549161037900'  // Todo: change to nigeria phone code '+234' escrowMSISDN
         agentMSISDN = '+2348188434844'  // Todo: add agent phone number
 
         console.log('sellerMSISDN', sellerMSISDN, 'escrowMSISDN', escrowMSISDN)
@@ -367,7 +372,8 @@ router.post("/", async(req, res, next) => {
         cashPickupLocation = data[4]
         localGovernmentArea = data[5]
         pickupPerson = data[6]
-        userInputPin = data[7]
+        remarks = data[7]
+        userInputPin = data[8]
 
         en_userInputPin = encryptionPin(userInputPin.toString())
         verificationId = generateVerificationId()
@@ -378,17 +384,19 @@ router.post("/", async(req, res, next) => {
         else if (data[4]==='3'){cashPickupLocation = 'Cross River'}
         else if (data[4]==='4'){cashPickupLocation = 'Akwa-Ibom'}
         else{cashPickupLocation = 'Ibadan'}
+        
         // localGovArea
         if (data[5]==='1'){localGovernmentArea = 'Biase LGA'}
         else if(data[5]==='2'){localGovernmentArea = 'Akpabuyo LGA'}
         else if(data[5]==='3'){localGovernmentArea = 'Akampkpa LGA'}
         else{localGovernmentArea = 'Biase LGA'}
+
         // pickup person
         if( data[6]==='1'){pickupPerson = 'My self'}
         else if (data[6]==='2'){pickupPerson = 'Another person'}
         else{pickupPerson = 'My self'}
 
-        console.log('coinToSell', coinToSell, 'amountToSell', amountToSell, 'cashPickupLocation', cashPickupLocation, 'localGovernmentArea', localGovernmentArea, 'pickupPerson', pickupPerson, 'userInputPin', userInputPin)
+        console.log('coinToSell', coinToSell, 'amountToSell', amountToSell, 'cashPickupLocation', cashPickupLocation, 'localGovernmentArea', localGovernmentArea, 'pickupPerson', pickupPerson, 'remarks', remarks, 'userInputPin', userInputPin)
         
         // get seller info 
         const user = await getUserAddress(phoneNumber)
@@ -397,6 +405,8 @@ router.post("/", async(req, res, next) => {
         let userId = user[0]._id
         const userFullName = senderFirstName + ' ' + senderLastName
         const currentUserPin = user[0].hashed_password
+
+        console.log('user wallet', user[0].walletAddress)
 
         // check if pin match user input pin
         if(currentUserPin === en_userInputPin) {
@@ -415,7 +425,7 @@ router.post("/", async(req, res, next) => {
             console.log('tx URL', transactionUrl)
 
             // save transaction to db
-            const transactionDoc = { userId, coinToSell, amountToSell, cashPickupLocation, localGovernmentArea, pickupPerson, verificationId, transactionUrl }
+            const transactionDoc = { userId, coinToSell, amountToSell, cashPickupLocation, localGovernmentArea, remarks, pickupPerson, verificationId, transactionUrl }
             await createTransaction(transactionDoc)
             
             let message_to_sell = `Your transaction has been completed. ${amountToSell} NGN has been sent to Canza escrow ${escrowMSISDN}.\nTransaction URL: ${transactionUrl} \nVerification ID ${verificationId}.`
@@ -434,7 +444,7 @@ router.post("/", async(req, res, next) => {
                 text: `You have recived a request from Canza finance to give ${sellerMSISDN}, ${userFullName}, amount ${amountToSell} NGN \nTransaction Link: ${transactionUrl} \nVerification ID ${verificationId}. \nPlease contact the user to arrange a meeting with a Canza Agent ${agentMSISDN} for pickup location ${cashPickupLocation}.`
             }
 
-            // send order confirmation email            
+            // send order confirmation email @canza.io            
             await sendEmail('k.achinonu@canza.io', data)
 
             msg += `END Your transaction has been completed.\nTransaction Link: ${transactionUrl}`
@@ -450,12 +460,17 @@ router.post("/", async(req, res, next) => {
         msg += `CON Please enter recipient's phone number`
         res.send(msg)
     } else if (data[0] == '2' && data[1] == '3' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '2' && data[7] !== '' && data[8] == null) {
-        msg += `CON Please enter your access pin to confirm to sell cUSD`
+        msg += `CON Please add remarks for the recipient \n (I want you to pick up my cash at Canza agent)`
         res.send(msg)
     } else if (data[0] == '2' && data[1] == '3' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '2' && data[7] !== '' && data[8] !== '' && data[9] == null) {
+        msg += `CON Please enter your access pin to confirm to sell cUSD`
+        res.send(msg)
+    } else if (data[0] == '2' && data[1] == '3' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '2' && data[7] !== '' && data[8] !== '' && data[9] !== '' && data[10] == null) {
         sellerMSISDN = phoneNumber
-        escrowMSISDN = '+2347061974255'  // Todo: change to nigeria phone code '+234' escrowMSISDN
+        escrowMSISDN = '+2549161037900'  // Todo: change to nigeria phone code '+234' escrowMSISDN
         agentMSISDN = '+2348188434844'  // Todo: add agent phone number
+
+        console.log('sellerMSISDN', sellerMSISDN, 'escrowMSISDN', escrowMSISDN)
 
         coinToSell = data[2]
         amountToSell = data[3]
@@ -463,7 +478,8 @@ router.post("/", async(req, res, next) => {
         localGovernmentArea = data[5]
         pickupPerson = data[6]
         recipientMSISDN = data[7]
-        userInputPin = data[8]
+        remarks = data[8]
+        userInputPin = data[9]
 
         en_userInputPin = encryptionPin(userInputPin.toString())
         verificationId = generateVerificationId()
@@ -474,17 +490,19 @@ router.post("/", async(req, res, next) => {
         else if (data[4]==='3'){cashPickupLocation = 'Cross River'}
         else if (data[4]==='4'){cashPickupLocation = 'Akwa-Ibom'}
         else{cashPickupLocation = 'Ibadan'}
+
         // localGovArea
         if (data[5]==='1'){localGovernmentArea = 'Biase LGA'}
         else if(data[5]==='2'){localGovernmentArea = 'Akpabuyo LGA'}
         else if(data[5]==='3'){localGovernmentArea = 'Akampkpa LGA'}
         else{localGovernmentArea = 'Biase LGA'}
+
         // pickup person
         if( data[6]==='1'){pickupPerson = 'My self'}
         else if (data[6]==='2'){pickupPerson = 'Another person'}
         else{pickupPerson = 'My self'}
 
-        console.log('coinToSell', coinToSell, 'amountToSell', amountToSell, 'cashPickupLocation', cashPickupLocation, 'localGovernmentArea', localGovernmentArea, 'pickupPerson', pickupPerson, 'userInputPin', userInputPin, 'recipientMSISDN', recipientMSISDN)
+        console.log('coinToSell', coinToSell, 'amountToSell', amountToSell, 'cashPickupLocation', cashPickupLocation, 'localGovernmentArea', localGovernmentArea, 'pickupPerson', pickupPerson, 'remarks', remarks, 'userInputPin', userInputPin, 'recipientMSISDN', recipientMSISDN)
 
         // get seller info 
         const user = await getUserAddress(phoneNumber)
@@ -510,7 +528,7 @@ router.post("/", async(req, res, next) => {
             console.log('tx URL', transactionUrl)
 
             // save transaction to db
-            const transactionDoc = { userId, coinToSell, amountToSell, cashPickupLocation, localGovernmentArea, pickupPerson, verificationId, transactionUrl }
+            const transactionDoc = { coinToSell, amountToSell, cashPickupLocation, localGovernmentArea, remarks, pickupPerson, verificationId, transactionUrl }
             await createTransaction(transactionDoc)
             
 
