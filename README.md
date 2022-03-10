@@ -1,32 +1,38 @@
 # Canza-USSD
 
+## TECH USED
+
 ## Before you run the app, you have to run ngrok
 
 - [Set up or sign in](https://dashboard.ngrok.com/login) into your Ngrok Account
 
 ## Dotenv variables
 
-- port connection
-1. PORT=8000
+**Port connection**
 
-- db connection
-1. DEV_MONGO_URI='replace with local Mongodb'
-2. PRO_MONGO_URI='replace with online Mongodb
+- PORT=8000
 
-- celo blockchain connection
-1. TEST_NET_ALFAJORES=https://alfajores-forno.celo-testnet.org
-2. MAIN_NET_ALFAJORES=https://forno.celo.org
+**DB Connection**
 
-- crypto
-1. SECRET_KEY_HASH=sha256
+- DEV_MONGO_URI='replace with local Mongodb'
+- PRO_MONGO_URI='replace with online Mongodb
 
-- africa's talking api
-1. AT_API_KEY=b2db2b9ff7e9098dc558cb21f9d75b5ed39900aac18eda40aa8acb1e62c7959c
-2. AT_API_USERNAME=sandbox
-   
-3. AT_API_KEY=
-4. AT_API_USERNAME=
+**Celo Blockchain Connection**
+  
+- TEST_NET_ALFAJORES=<https://alfajores-forno.celo-testnet.org>
+- MAIN_NET_ALFAJORES=<https://forno.celo.org>
 
+**Crypto**
+
+- SECRET_KEY_HASH=sha256
+
+**Africa's talking api**
+
+- AT_API_KEY=b2db2b9ff7e9098dc558cb21f9d75b5ed39900aac18eda40aa8acb1e62c7959c
+- AT_API_USERNAME=sandbox
+
+- AT_API_KEY=
+- AT_API_USERNAME=
 
 ## Connect your account
 

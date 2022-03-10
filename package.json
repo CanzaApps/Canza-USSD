@@ -27,6 +27,7 @@
     "mailgun-js": "^0.22.0",
     "mongoose": "^6.0.14",
     "randomstring": "^1.2.1",
+    "response-time": "^2.3.2",
     "tinyurl": "^1.1.7",
     "ussd-router": "^0.1.6",
     "uuid": "^8.3.2",

@@ -83,7 +83,7 @@ router.post("/", async(req, res, next) => {
     //     res.send(msg)
     // }
     
-    console.log("user details", user)
+    // console.log("user details", user)
     // check if user isVerified 
     // let isVerified = user[0].isVerified
     // console.log(isVerified)
@@ -273,55 +273,128 @@ router.post("/", async(req, res, next) => {
     
     // Buy Funds
     else if (data[0] == '2' && data[1] == '2' && data[2] == null) {
-        msg+= `CON Enter amount of Celo to buy`
+        msg += `CON Please select coin to Buy
+        1. cUSD
+        2. USDC
+        3. BTC
+        4. ETH
+        5. CNZA
+        6. CLGD`
         res.send(msg)
     } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] == null) {
-        msg += `CON Please add Remarks for your transaction (Buy Celo)`
-        res.send(msg)      
+        msg+= `CON Enter amount to buy`
+        res.send(msg)    
     } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] == null) {
-        msg += `CON Please insert your Pin to confirm purchase of ${data[2]} Celo`
-        res.send(msg) 
+        msg += `CON Please select cash Drop off location
+        1. Calabar
+        2. Ibadan
+        3. Cross River
+        4. Akwa Ibom`
+        res.send(msg)
     } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] == null) {
+        msg += `CON Please select Your LGA
+        1. Biase LGA
+        2. Akpabuyo LGA
+        3. Akampkpa LGA`
+        res.send(msg)    
+    } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == null) {
+        msg += `CON Please select the Buyer 
+        1. My self
+        2. Another person`
+        res.send(msg)
+    } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '1' && data[7] == null) {
+        msg += `CON Please add Remarks for your transaction (Buy Celo)`
+        res.send(msg)  
+    } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '1' && data[7] !== '' && data[8] == null) {
+        msg += `CON Please enter your access pin to confirm purchase of ${data[3]} `
+        res.send(msg) 
+    } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '1' && data[7] !== '' && data[8] !== '' && data[9] !== '' && data[10] == null) {
         senderMSISDN = phoneNumber
-        _amount = data[2]
-        amount = kit.web3.utils.toWei(`${_amount}`)
-        userInputPin = data[4]
+        escrowMSISDN = '+2549161037900'  // Todo: change to nigeria phone code '+234' escrowMSISDN
+        agentMSISDN = '+2348188434844'  // Todo: add agent phone number
+
+        coinToBuy = data[2]
+        amountToBuy = data[3]
+        cashPickupLocation = data[4]
+        localGovernmentArea = data[5]
+        pickupPerson = data[6]
+        remarks = data[7]
+        userInputPin = data[8]
+
+        // amount = kit.web3.utils.toWei(`${_amount}`)
+
         en_userInputPin = encryptionPin(userInputPin.toString())
-        console.log("userInputPin", userInputPin, en_userInputPin, senderMSISDN, 'amount to buy', amount)
+        verificationId = generateVerificationId()
+
+        // cashPickupLocation
+        if(data[4]==='1'){cashPickupLocation = 'Calabar'}
+        else if (data[4]==='2'){cashPickupLocation = 'Ibadan'}
+        else if (data[4]==='3'){cashPickupLocation = 'Cross River'}
+        else if (data[4]==='4'){cashPickupLocation = 'Akwa-Ibom'}
+        else{cashPickupLocation = 'Ibadan'}
+        
+        // localGovArea
+        if (data[5]==='1'){localGovernmentArea = 'Biase LGA'}
+        else if(data[5]==='2'){localGovernmentArea = 'Akpabuyo LGA'}
+        else if(data[5]==='3'){localGovernmentArea = 'Akampkpa LGA'}
+        else{localGovernmentArea = 'Biase LGA'}
+
+        // buying for person
+        if( data[6]==='1'){pickupPerson = 'My self'}
+        else if (data[6]==='2'){pickupPerson = 'Another person'}
+        else{pickupPerson = 'My self'}
+
+        
+        console.log('cashPickupLocation', cashPickupLocation, 'localGovernmentArea', localGovernmentArea, 'pickupPerson', pickupPerson, 'remarks', remarks, 'verificationId', verificationId, 'escrowMSISDN', escrowMSISDN, 'agentMSISDN', agentMSISDN, 'senderMSISDN', senderMSISDN, 'coinToBuy', coinToBuy, 'amountToBuy', amountToBuy)
 
         // get buyers information
         const user = await getUserAddress(senderMSISDN)
-        const currentUserPin  = user[0].hashed_password
-        // const buyerAddress = user[0].walletAddress
-        // const buyerKey = user[0].privateKey
-        // const privateKeyBuffer = Buffer.from(privateKey.substring(2,66), 'hex')
+        let userId = user[0]._id
+        let buyerFirstName = user[0].firstName
+        let buyerLastName = user[0].lastName
+        const buyerFullName = buyerFirstName + ' ' + buyerLastName
+        const currentUserPin = user[0].hashed_password
+        const buyerAddress = user[0].walletAddress
         
         // check if pin match user input pin
         if(currentUserPin === en_userInputPin) {
             console.log('pin match good')
             
-            let txReceipt = await buyCELO(senderMSISDN, amount)
+            // let txReceipt = await buyCELO(senderMSISDN, amount)
 
-            if(txReceipt === 'failed'){
-                msg += `END Your transaction has failed due to insufficient balance`
-                return res.send(msg)
+            // if(txReceipt === 'failed'){
+            //     msg += `END Your transaction has failed due to insufficient balance`
+            //     return res.send(msg)
+            // }
+
+            // let txUrl = await getTxIdUrl(txReceipt)
+            // console.log('tx URL', txUrl)
+
+            let message_to_buyer = `you have created a buy order for ${amountToBuy} ${coinToBuy} verification Id ${verificationId}. Please wait for the Canza agent to confirm your transaction.`
+            let message_to_agent = `${buyerFullName} has placed a  buy order of ${amountToBuy} ${coinToBuy} from you. verrification Id ${verificationId}.`
+            let message_to_canza = `${buyerFullName} has placed a  buy order of ${amountToBuy} ${coinToBuy} from you. verrification Id ${verificationId}.`
+            
+            sendMessage(senderMSISDN, message_to_buyer)
+            sendMessage(agentMSISDN, message_to_agent)
+            sendMessage(escrowMSISDN, message_to_canza)
+
+            // send email to canza escrow
+            const data = {
+                subject: 'New Buy Order',
+                text: `You have recived a buy order of ${amountToBuy} ${coinToBuy} from ${buyerFullName} \nVerification ID ${verificationId}. \nPlease contact the user to arrange a meeting with a Canza Agent ${agentMSISDN} for pickup location ${cashPickupLocation}.`
             }
-
-            let txUrl = await getTxIdUrl(txReceipt)
-            console.log('tx URL', txUrl)
-
-            let message_to_buy = `You have purchased Celo.\nTransaction URL: ${txUrl}`
-            sendMessage(senderMSISDN, message_to_buy)
             
+            // send order confirmation email @canza.io            
+            await sendEmail('k.achinonu@canza.io', data)
             
-            msg += `END Your transaction has been completed.\nYou have bought ${amount} Celo`
+            msg += `END Your buy order has been placed.\n Kindly wailt for the Canza agent to confirm your transaction.`
             res.send(msg)
         
         } else {
             msg += `END Your access pin does not match \n Please Retry again!!`
             res.send(msg)
         }
-    } 
+    }
     
     // Sell Crypto
     else if (data[0] == '2' && data[1] == '3' && data[2] == null) {
