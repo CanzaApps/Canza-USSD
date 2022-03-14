@@ -1,7 +1,6 @@
 const ContractKit = require('@celo/contractkit')
-const kit = ContractKit.newKit(process.env.TEST_NET_ALFAJORES)
+const kit = ContractKit.newKit(process.env.MAIN_NET_ALFAJORES) // Todo change to main net TEST_NET_ALFAJORES
 
-// 
 const { getUserAddress } = require('../controllers/users.controller')
 const { getTxIdUrl, getUserAddressUrl } = require('../services/short-urls')
 
