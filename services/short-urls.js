@@ -15,15 +15,17 @@ const getDeepLinkUrl = (deeplink)=> {
 
 const getSentTxidUrl = (txid) => {
     return new Promise(resolve => {
-        const sourceURL = `https://alfajores-blockscout.celo-testnet.org/tx/${txid}/token-transfers`
+        const sourceURL = `https://explorer.celo.org/tx/${txid}/token-transfers`
         resolve(tinyURL.shorten(sourceURL))
     })
 }
 
 // wallet address shortURL
+// https://explorer.celo.org
+// https://alfajores-blockscout.celo-testnet.org
 const getUserAddressUrl = (userAddress) => {
     return new Promise((resolve) => {
-        const sourceURL = `https://alfajores-blockscout.celo-testnet.org/address/${userAddress}/`
+        const sourceURL = `https://explorer.celo.org/address/${userAddress}/`
         resolve(tinyURL.shorten(sourceURL))
     })
 }

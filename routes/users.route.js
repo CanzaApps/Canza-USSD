@@ -358,17 +358,9 @@ router.post("/", async(req, res, next) => {
         
         // check if pin match user input pin
         if(currentUserPin === en_userInputPin) {
-            console.log('pin match good')
             
-            // let txReceipt = await buyCELO(senderMSISDN, amount)
-
-            // if(txReceipt === 'failed'){
-            //     msg += `END Your transaction has failed due to insufficient balance`
-            //     return res.send(msg)
-            // }
-
-            // let txUrl = await getTxIdUrl(txReceipt)
-            // console.log('tx URL', txUrl)
+            //Todo add order to db
+            
 
             let message_to_buyer = `you have created a buy order for ${amountToBuy} ${coinToBuy} verification Id ${verificationId}. Please wait for the Canza agent to confirm your transaction.`
             let message_to_agent = `${buyerFullName} has placed a  buy order of ${amountToBuy} ${coinToBuy} from you. verrification Id ${verificationId}.`
@@ -378,22 +370,72 @@ router.post("/", async(req, res, next) => {
             sendMessage(agentMSISDN, message_to_agent)
             sendMessage(escrowMSISDN, message_to_canza)
 
-            // send email to canza escrow
+            // send email to canza
             const data = {
                 subject: 'New Buy Order',
                 text: `You have recived a buy order of ${amountToBuy} ${coinToBuy} from ${buyerFullName} \nVerification ID ${verificationId}. \nPlease contact the user to arrange a meeting with a Canza Agent ${agentMSISDN} for pickup location ${cashPickupLocation}.`
             }
             
             // send order confirmation email @canza.io            
-            await sendEmail('k.achinonu@canza.io', data)
+            // await sendEmail('k.achinonu@canza.io', data)
             
-            msg += `END Your buy order has been placed.\n Kindly wailt for the Canza agent to confirm your transaction.`
+            msg += `END Your buy order has been placed.\n Kindly wait for the Canza agent to confirm your order.`
             res.send(msg)
         
         } else {
             msg += `END Your access pin does not match \n Please Retry again!!`
             res.send(msg)
         }
+    } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '2' && data[7] == null) {
+        msg += `CON Please enter recipient's phone number`
+        res.send(msg)
+    } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '2' && data[7] !== '' && data[8] == null) {
+        msg += `CON Please add remarks \n (I want to buy coins for another person)`
+        res.send(msg) 
+    } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '2' && data[7] !== '' && data[8] !== '' && data[9] == null) {
+        msg += `CON Please enter your access pin to confirm purchase of ${data[3]} `
+        res.send(msg)
+    } else if (data[0] == '2' && data[1] == '2' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] !== '' && data[6] == '2' && data[7] !== '' && data[8] !== '' && data[9] !== '' && data[10] == null) {
+        senderMSISDN = phoneNumber
+        escrowMSISDN = '+2549161037900'  // Todo: change to nigeria phone code '+234' escrowMSISDN
+        agentMSISDN = '+2348188434844'  // Todo: add agent phone number
+
+        coinToBuy = data[2]
+        amountToBuy = data[3]
+        cashPickupLocation = data[4]
+        localGovernmentArea = data[5]
+        pickupPerson = data[6]
+        remarks = data[7]
+        userInputPin = data[8]
+        
+        // amount = kit.web3.utils.toWei(`${_amount}`)
+
+        en_userInputPin = encryptionPin(userInputPin.toString())
+        verificationId = generateVerificationId()
+
+        // cashPickupLocation
+        if(data[4]==='1'){cashPickupLocation = 'Calabar'}
+        else if (data[4]==='2'){cashPickupLocation = 'Ibadan'}
+        else if (data[4]==='3'){cashPickupLocation = 'Cross River'}
+        else if (data[4]==='4'){cashPickupLocation = 'Akwa-Ibom'}
+        else{cashPickupLocation = 'Ibadan'}
+
+        // localGovArea
+        if (data[5]==='1'){localGovernmentArea = 'Biase LGA'}
+        else if(data[5]==='2'){localGovernmentArea = 'Akpabuyo LGA'}
+        else if(data[5]==='3'){localGovernmentArea = 'Akampkpa LGA'}
+        else{localGovernmentArea = 'Biase LGA'}
+
+        // buying for person
+        if( data[6]==='1'){pickupPerson = 'My self'}
+        else if (data[6]==='2'){pickupPerson = 'Another person'}
+        else{pickupPerson = 'My self'}
+
+        console.log('cashPickupLocation', cashPickupLocation, 'localGovernmentArea', localGovernmentArea, 'pickupPerson', pickupPerson, 'remarks', remarks, 'verificationId', verificationId, 'escrowMSISDN', escrowMSISDN, 'agentMSISDN', agentMSISDN, 'senderMSISDN', senderMSISDN, 'coinToBuy', coinToBuy, 'amountToBuy', amountToBuy)
+
+        const user = await getUserAddress(senderMSISDN)
+        console.log('user', user)
+        
     }
     
     // Sell Crypto
@@ -437,8 +479,6 @@ router.post("/", async(req, res, next) => {
         sellerMSISDN = phoneNumber
         escrowMSISDN = '+2549161037900'  // Todo: change to nigeria phone code '+234' escrowMSISDN
         agentMSISDN = '+2348188434844'  // Todo: add agent phone number
-
-        console.log('sellerMSISDN', sellerMSISDN, 'escrowMSISDN', escrowMSISDN)
 
         coinToSell = data[2]
         amountToSell = data[3]
