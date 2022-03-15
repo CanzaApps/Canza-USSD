@@ -246,7 +246,7 @@ router.post("/", async(req, res, next) => {
             console.log('pin match good')
             
             let txReceipt = await transfercUSD(senderMSISDN, receiverMSISDN, amount)
-            console.log('tx details', txReceipt)
+            // console.log('tx details', txReceipt)
 
             if(txReceipt === 'failed'){
                 msg += `END Your transaction has failed due to insufficient balance`
@@ -255,9 +255,8 @@ router.post("/", async(req, res, next) => {
             }
 
             // save transaction details
-            let txHash = txReceipt.transactionHash
-            let txUrl = await getTxIdUrl(txHash)
-            console.log('tx URL', txUrl)
+            let txUrl = await getTxIdUrl(txReceipt.transactionHash)
+            // console.log('tx URL', txUrl)
             
             let message_to_sender = `${amount} NGN sent to ${receiverMSISDN}.\nTransaction URL: ${txUrl}`
             let message_to_receiver = `You have received ${amount} NGN from ${senderName}.\nTransaction URL: ${txUrl}`
@@ -267,6 +266,9 @@ router.post("/", async(req, res, next) => {
 
             msg += `END Your transaction has been completed.\nTransaction URL: ${txUrl}`
             // msg += `END Your transaction has been completed. You have sent ${amount} cUSD to ${receiverMSISDN}`
+            res.send(msg)
+        } else {
+            msg += `END Your access pin does not match \n Please Retry again!!`
             res.send(msg)
         }
     }
