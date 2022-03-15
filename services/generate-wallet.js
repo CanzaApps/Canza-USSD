@@ -1,4 +1,5 @@
 const ContractKit = require('@celo/contractkit')
+const nodeURL = 'https://celo-mainnet--rpc.datahub.figment.io/apikey/API_KEY/'
 const kit = ContractKit.newKit(process.env.MAIN_NET_ALFAJORES) // Todo change to main net TEST_NET_ALFAJORES
 
 const { getUserAddress } = require('../controllers/users.controller')
@@ -149,13 +150,21 @@ const sendcUSD = async (sender, receiver, amount, privatekey) => {
     
     kit.addAccount(privatekey)
     const stableTokenContract = await kit._web3Contracts.getStableToken()
+    // console.log('stableTokenContract', stableTokenWrapper.address)
+    // Added feeCurrency for gas fee
     const txObject = await stableTokenContract.methods.transfer(receiver, weiTransferAmount)
-    const tx = await kit.sendTransactionObject(txObject, {from: sender})
+    // let cUSDtx = await stabletoken.transfer(anAddress, amount).send({from: account.address, feeCurrency: stabletoken.address})
+    
+    
+    // .send({ feeCurrency: stableTokenWrapper.address })
+    const tx = await kit.sendTransactionObject(txObject, {from: sender, feeCurrency: stableTokenWrapper.address})
     // console.log("tx details", tx)
     const hash = await tx.getHash()
+    const receipt = await tx.waitReceipt();
+    // console.log(receipt)
     // console.info(`Transferred ${amount} dollars to ${receiver}. Hash: ${hash}`);
 
-    return hash
+    return receipt
 } 
 
 const transfercUSD = async (senderId, recipientId, amount) => {
