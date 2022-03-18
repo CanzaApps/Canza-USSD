@@ -145,10 +145,8 @@ const sendcUSD = async (sender, receiver, amount, privatekey) => {
     const senderBalance = await stableTokenWrapper.balanceOf(sender)
     
     // check if the user has enough balance
-<<<<<<< HEAD
     if (amount < senderBalance) {
         console.info(`Sender balance of ${ await convertFromWei(senderBalance)} cUSD is Sufficient to fulfil ${ await convertFromWei(weiTransferAmount)} cUSD`)
-=======
     if (amount > senderBalance) {
         console.log(`You don't have enough funds to fulfil request: ${ await convertFromWei(senderBalance)}`)
         return `END INSUFFICIENT FUNDS.`
