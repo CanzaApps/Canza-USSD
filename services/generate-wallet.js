@@ -1,7 +1,7 @@
 const ContractKit = require('@celo/contractkit')
-const kit = ContractKit.newKit(process.env.TEST_NET_ALFAJORES)
+const nodeURL = 'https://celo-mainnet--rpc.datahub.figment.io/apikey/API_KEY/'
+const kit = ContractKit.newKit(process.env.MAIN_NET_ALFAJORES) // Todo change to main net TEST_NET_ALFAJORES
 
-// 
 const { getUserAddress } = require('../controllers/users.controller')
 const { getTxIdUrl, getUserAddressUrl } = require('../services/short-urls')
 
@@ -69,6 +69,72 @@ const getAccountDetails = async (userMSISDN) => {
     ...Wallet Address is: ${wallet_url}`
 }
 
+// buy Celo
+// @ params sender, amount, privatekey
+const buyCelo = async (sender, amount, privatekey) => {
+    kit.setFeeCurrency(ContractKit.CeloContract.StableToken)
+    kit.addAccount(privatekey)
+
+    const cusdToken = await kit.contracts.getStableToken()
+    const exchange = await kit.contracts.getExchange()
+    console.log(`exchange address, ${exchange.address}`)
+
+    cusdBalance = `${await cusdToken.balanceOf(sender)}`
+    console.log(`cusd balance, ${kit.web3.utils.fromWei(cusdBalance)}`)
+    
+    // check if the user has enough balance
+    if (amount < cusdBalance) {
+        console.info(`You have enough funds to fulfil request: ${ await convertFromWei(cusdBalance)}`)
+
+        const tx = await cusdToken.approve(exchange.address, kit.web3.utils.toWei(amount)).send({ from : sender })
+        const receipt = await tx.waitReceipt()
+        // console.log('receipt:', receipt)
+
+        const celoAmount = `${await exchange.quoteStableSell(amount)}`
+        console.log(`You will receive celo amount, ${kit.web3.utils.fromWei(celoAmount, 'ether')} CELO`)
+
+        const buyCeloTx = await exchange.sellStable(amount, celoAmount).send({ from : sender })
+        const buyCeloReceipt = await buyCeloTx.waitReceipt()
+        const hash = buyCeloReceipt.transactionHash
+        // console.log(`transaction hash: ${hash}`)
+        // `END You have succesfuly bought ${kit.web3.utils.fromWei(celoAmount, 'ether')} CELO txId: ${buyCeloReceipt.transactionHash}`
+        return hash
+    }else {
+        console.log(`You don't have enough funds to fulfil request: ${ await convertFromWei(cusdBalance)}`)
+        msg += `END INSUFFICIENT FUNDS.`
+        return false
+    } 
+    
+}
+
+
+const buyCELO = async (buyerId, amount) => {
+    try {
+        const user = await getUserAddress(buyerId)
+        const buyerAddress = user[0].walletAddress
+        const buyerKey = user[0].privateKey
+
+        return buyCelo(buyerAddress, amount, buyerKey)
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+
+// transfer cEURO
+// @ params sender, receiver, amount, privatekey
+const sendcEURO = async (sender, receiver, amount, privatekey) => {
+    try {
+        const cEURO = await kit.contracts.getcEURO()
+        const cEUROTokenWrapper = await kit.contracts.getcEUROToken()
+        const cEUROToken = await cEUROTokenWrapper.contract.methods.balanceOf(sender).call()
+        console.log("cEURO balance", cEUROToken)
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+
 // transfer cUSD
 // @ params sender, receiver, amount, privatekey
 const sendcUSD = async (sender, receiver, amount, privatekey) => {
@@ -80,21 +146,27 @@ const sendcUSD = async (sender, receiver, amount, privatekey) => {
     // check if the user has enough balance
     if (amount > senderBalance) {
         console.log(`You don't have enough funds to fulfil request: ${ await convertFromWei(senderBalance)}`)
-        return flase
+        return `END INSUFFICIENT FUNDS.`
     }
-    console.info(
-        `Sender balance of ${ await convertFromWei(senderBalance)} cUSD is Sufficient to fulfil ${ await convertFromWei(weiTransferAmount)} cUSD`
-    )
+    console.info(`Sender balance of ${ await convertFromWei(senderBalance)} cUSD is Sufficient to fulfil ${ await convertFromWei(weiTransferAmount)} cUSD`)
     
     kit.addAccount(privatekey)
     const stableTokenContract = await kit._web3Contracts.getStableToken()
+    // console.log('stableTokenContract', stableTokenWrapper.address)
+    // Added feeCurrency for gas fee
     const txObject = await stableTokenContract.methods.transfer(receiver, weiTransferAmount)
-    const tx = await kit.sendTransactionObject(txObject, {from: sender})
+    // let cUSDtx = await stabletoken.transfer(anAddress, amount).send({from: account.address, feeCurrency: stabletoken.address})
+    
+    
+    // .send({ feeCurrency: stableTokenWrapper.address })
+    const tx = await kit.sendTransactionObject(txObject, {from: sender, feeCurrency: stableTokenWrapper.address})
     // console.log("tx details", tx)
     const hash = await tx.getHash()
+    const receipt = await tx.waitReceipt();
+    // console.log(receipt)
     // console.info(`Transferred ${amount} dollars to ${receiver}. Hash: ${hash}`);
 
-    return hash
+    return receipt
 } 
 
 const transfercUSD = async (senderId, recipientId, amount) => {
@@ -114,4 +186,4 @@ const transfercUSD = async (senderId, recipientId, amount) => {
     }
 }
 
-module.exports = { createWallet, getAccountBalance, getAccountDetails, transfercUSD }
+module.exports = { createWallet, getAccountBalance, getAccountDetails, transfercUSD, buyCELO}

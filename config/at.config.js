@@ -17,8 +17,4 @@ const sendMessage = async (to, message) => {
   }
 }
 
-// twilio
-
-
-
-module.exports = { sendMessage, }
+module.exports = { sendMessage }

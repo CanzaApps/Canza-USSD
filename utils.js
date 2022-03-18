@@ -14,7 +14,7 @@ function generatePin(){
 }
 
 // encryption sha256
-const encryptPin = (pin) => {
+const encryptionPin = (pin) => {
   const en_key = crypto.createHash('sha256').update(pin).digest('hex')
   return en_key
 }
@@ -44,6 +44,13 @@ function decryptData (text) {
   return decrypted.toString()
 }
 
+// generate unique verification id
+// @params length is number of characters
+function generateVerificationId () {
+  const verificationId = uuidv1().replace(/-/g, '').substring(0, 6)
+  return verificationId
+}
+
 // @params value is number 
 // @params decimals is number of decimals to format value to
 function formartNumber (val, decimals) {
@@ -55,6 +62,4 @@ function emailIsValid (email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
-
-
-module.exports = { generatePin, encryptPin, encryptData, decryptData, formartNumber, emailIsValid }
+module.exports = { generatePin, encryptionPin, encryptData, decryptData, generateVerificationId, formartNumber, emailIsValid }
