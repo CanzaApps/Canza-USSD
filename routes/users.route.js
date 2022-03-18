@@ -196,6 +196,10 @@ router.post("/", async(req, res, next) => {
         senderMSISDN = phoneNumber
         // get user's name
         const user = await getUserAddress(senderMSISDN)
+        console.log("User phoneNumber: ", senderMSISDN)
+        console.log("User info: ", user)
+        console.log("User info: ", user[0].firstName)
+
         let userName = user[0].firstName
         msg = `CON Welcome to Canza Finance ${userName}.\nPlease select an option below.`
         msg += '\n1. Send'
