@@ -194,6 +194,7 @@ router.post("/", async(req, res, next) => {
     // login user
     else if (data[0] == '2' && data[1] == null) {
         senderMSISDN = phoneNumber
+        console.log(senderMSISDN)
         // get user's name
         const user = await getUserAddress(senderMSISDN)
         let userName = user[0].firstName
@@ -227,7 +228,7 @@ router.post("/", async(req, res, next) => {
         res.send(msg) 
     } else if (data[0] == '2' && data[1] == '1' && data[2] !== '' && data[3] !== '' && data[4] !== '' && data[5] == null) {
         senderMSISDN = phoneNumber
-        receiverMSISDN = '+234' + data[2].substring(1) // Todo: change to nigeria phone code '+234'
+        receiverMSISDN = '+254' + data[2].substring(1) // Todo: change to nigeria phone code '+234'
         amount = data[3]
         userInputPin = data[4]
         en_userInputPin = encryptionPin(userInputPin.toString())
