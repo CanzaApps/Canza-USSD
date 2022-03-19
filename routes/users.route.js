@@ -194,6 +194,7 @@ router.post("/", async(req, res, next) => {
     // login user
     else if (data[0] == '2' && data[1] == null) {
         senderMSISDN = phoneNumber
+        console.log(senderMSISDN)
         // get user's name
         const user = await getUserAddress(senderMSISDN)
         console.log("User phoneNumber: ", senderMSISDN)
