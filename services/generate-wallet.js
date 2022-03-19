@@ -102,10 +102,7 @@ const buyCelo = async (sender, amount, privatekey) => {
     }else {
         console.log(`You don't have enough funds to fulfil request: ${ await convertFromWei(cusdBalance)}`)
         return 'failed'
-        msg += `END INSUFFICIENT FUNDS.`
-        return false
-    }
-    
+    }    
 }
 
 
@@ -146,11 +143,6 @@ const sendcUSD = async (sender, receiver, amount, privatekey) => {
     
     // check if the user has enough balance
     if (amount < senderBalance) {
-        console.info(`Sender balance of ${ await convertFromWei(senderBalance)} cUSD is Sufficient to fulfil ${ await convertFromWei(weiTransferAmount)} cUSD`)
-    if (amount > senderBalance) {
-        console.log(`You don't have enough funds to fulfil request: ${ await convertFromWei(senderBalance)}`)
-        return `END INSUFFICIENT FUNDS.`
-    }
     console.info(`Sender balance of ${ await convertFromWei(senderBalance)} cUSD is Sufficient to fulfil ${ await convertFromWei(weiTransferAmount)} cUSD`)
 
         kit.addAccount(privatekey)
@@ -159,7 +151,7 @@ const sendcUSD = async (sender, receiver, amount, privatekey) => {
         // Added feeCurrency for gas fee
         const txObject = await stableTokenContract.methods.transfer(receiver, weiTransferAmount)
         // let cUSDtx = await stabletoken.transfer(anAddress, amount).send({from: account.address, feeCurrency: stabletoken.address})
-    
+   
         const tx = await kit.sendTransactionObject(txObject, {from: sender, feeCurrency: stableTokenWrapper.address})
         // console.log("tx details", tx)
         const hash = await tx.getHash()
