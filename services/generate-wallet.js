@@ -180,6 +180,7 @@ const transfercUSD = async (senderId, recipientId, amount) => {
         return sendcUSD( `${senderInfo}`, `${receiverInfo}`, cusdAmount, senderKey)
     } catch (error) {
         console.log(error)
+        return 'failed' 
     }
 }
 
